@@ -1,6 +1,7 @@
 node_modules/
 dist/
-.env
+test-results/
+playwright-report/
+.factory/lighthouse.json
+.factory/*-home.png
 *.log
-graphify-out/
-.DS_Store
