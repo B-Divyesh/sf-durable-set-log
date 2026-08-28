@@ -7,9 +7,10 @@ Deploy type: static, `npm run build` → `dist/`
 ## What shipped
 
 - Installable vanilla TypeScript PWA with a hand-written, versioned service
-  worker. The complete shell (including stable JS/CSS entry names, responsive
-  artwork, icons, manifest, and offline fallback) is precached with cache reload
-  semantics; an in-app toast activates waiting updates.
+  worker. The small app and stylesheet are inlined into the cached document so
+  an offline reopen has no script/style subrequest failure surface. Responsive
+  artwork, icons, manifest, and offline fallback are also precached; an in-app
+  toast activates waiting updates.
 - Reusable routines with multiple exercises, default sets/load/reps, editing,
   confirmed deletion, a two-routine free tier, and an unlimited paid tier.
 - A persisted active workout with large, thumb-friendly controls. Starting and
@@ -49,15 +50,16 @@ Final Lighthouse 12.8.2 mobile-class run on the production build:
 | Accessibility | 100 |
 | Best practices | 100 |
 | SEO | 100 |
-| First Contentful Paint | 0.9 s |
-| Largest Contentful Paint | 1.9 s |
+| First Contentful Paint | 0.8 s |
+| Largest Contentful Paint | 1.8 s |
 | Total Blocking Time | 0 ms |
 | Cumulative Layout Shift | 0 |
-| Time to Interactive | 1.9 s |
+| Time to Interactive | 1.8 s |
 
-Bundle/image budgets: 34.27 KB uncompressed JS (11.28 KB gzip), 14.86 KB
-uncompressed CSS (4.04 KB gzip), 34 KB 640px AVIF / 62 KB WebP, and 88 KB
-960px AVIF / 152 KB WebP. There are no downloaded fonts or runtime CDNs.
+Bundle/image budgets: the inlined app document is 49.45 KB (15.26 KB gzip),
+containing 34.27 KB JS and 14.86 KB CSS; hero sources are 34 KB 640px AVIF /
+62 KB WebP and 88 KB 960px AVIF / 152 KB WebP. There are no downloaded fonts
+or runtime CDNs.
 
 ## Deploy and operate
 
