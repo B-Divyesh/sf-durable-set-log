@@ -103,7 +103,7 @@ function workoutView(): string {
         <p class="eyebrow">Append-only · offline-first</p>
         <h2>Your sets should outlast a reload.</h2>
         <p>Tap complete and the set is written straight to this device. Signal optional. Corrections keep the original visible.</p>
-        ${state.routines.length ? `<div class="start-list" aria-label="Start a routine">${state.routines.map((routine) => `<button class="start-routine" data-action="start" data-id="${routine.id}"><span><strong>${escapeHtml(routine.name)}</strong><small>${routine.exercises.length} exercise${routine.exercises.length === 1 ? '' : 's'}</small></span><span aria-hidden="true">Start →</span></button>`).join('')}</div>` : `<button class="button button-primary" data-action="new-routine">Make your first routine</button>`}
+        ${state.routines.length ? `<div class="start-list" aria-label="Start a routine">${state.routines.map((routine) => `<button class="start-routine" data-action="start" data-id="${escapeHtml(routine.id)}"><span><strong>${escapeHtml(routine.name)}</strong><small>${routine.exercises.length} exercise${routine.exercises.length === 1 ? '' : 's'}</small></span><span aria-hidden="true">Start →</span></button>`).join('')}</div>` : `<button class="button button-primary" data-action="new-routine">Make your first routine</button>`}
       </div>
       <figure class="hero-art"><picture><source type="image/avif" srcset="/art/ledger-stamp-640.avif 640w, /art/ledger-stamp-960.avif 960w" sizes="(max-width: 760px) 100vw, 48vw"><img src="/art/ledger-stamp-640.webp" srcset="/art/ledger-stamp-640.webp 640w, /art/ledger-stamp-960.webp 960w" sizes="(max-width: 760px) 100vw, 48vw" width="960" height="640" alt="Risograph collage of a hand stamping a workout ledger beside a weight plate" decoding="async" fetchpriority="high"></picture><figcaption>Stamped in, not synced away.</figcaption></figure>
       <div class="proof-strip"><span>${icon('check')} Written before confirmation</span><span>${icon('check')} Reload-safe IndexedDB</span><span>${icon('check')} CSV stays yours</span></div>
@@ -126,14 +126,14 @@ function exerciseLogger(exercise: Exercise, sessionSets: SetEvent[]): string {
   const reps = last?.reps ?? exercise.defaultReps;
   const next = sets.length + 1;
   const done = sets.length >= exercise.targetSets;
-  return `<article class="exercise-sheet" data-exercise="${exercise.id}">
+  return `<article class="exercise-sheet" data-exercise="${escapeHtml(exercise.id)}">
     <div class="exercise-title"><div><p class="set-kicker">${done ? 'Plan complete · add another if needed' : `Set ${next} of ${exercise.targetSets}`}</p><h3>${escapeHtml(exercise.name)}</h3></div><ol class="set-dots" aria-label="${sets.length} completed of ${exercise.targetSets} planned">${Array.from({ length: Math.max(exercise.targetSets, sets.length) }, (_, index) => `<li class="${index < sets.length ? 'done' : ''}">${index < sets.length ? '✓' : index + 1}</li>`).join('')}</ol></div>
     <div class="load-fields">
       <label><span>Weight <small>kg</small></span><input data-field="weight" type="number" inputmode="decimal" min="0" max="2000" step="0.5" value="${weight}" aria-label="${escapeHtml(exercise.name)} weight in kilograms"></label>
       <span class="multiply" aria-hidden="true">×</span>
       <label><span>Reps</span><input data-field="reps" type="number" inputmode="numeric" min="0" max="1000" step="1" value="${reps}" aria-label="${escapeHtml(exercise.name)} repetitions"></label>
     </div>
-    <button class="complete-set" data-action="complete" data-id="${exercise.id}" ${state.busy ? 'disabled' : ''}>${state.busy ? 'Writing…' : `Complete set ${next}`}<span aria-hidden="true">↓ ledger</span></button>
+    <button class="complete-set" data-action="complete" data-id="${escapeHtml(exercise.id)}" ${state.busy ? 'disabled' : ''}>${state.busy ? 'Writing…' : `Complete set ${next}`}<span aria-hidden="true">↓ ledger</span></button>
     ${last ? `<p class="last-set">Last saved: ${formatNumber(last.weight)} kg × ${last.reps} · ${formatDate(last.at)}</p>` : '<p class="last-set">No set written yet.</p>'}
   </article>`;
 }
@@ -143,7 +143,7 @@ function routinesView(): string {
   return `<section class="page-section" aria-labelledby="routines-heading">
     <div class="section-heading"><div><p class="eyebrow">Reusable cards</p><h2 id="routines-heading">Routines</h2><p>Defaults are a starting point. Adjust weight or reps during the workout.</p></div><button class="button button-primary" data-action="new-routine" ${canAdd ? '' : 'disabled aria-describedby="routine-limit"'}>New routine</button></div>
     ${!canAdd ? `<p id="routine-limit" class="limit-note">Free keeps two routines. The one-time unlock removes this limit; your ledger and exports always stay free.</p>` : ''}
-    ${state.routines.length ? `<div class="routine-grid">${state.routines.map((routine) => `<article class="routine-card"><div><h3>${escapeHtml(routine.name)}</h3><ol>${routine.exercises.map((exercise) => `<li><span>${escapeHtml(exercise.name)}</span><small>${exercise.targetSets} sets · ${formatNumber(exercise.defaultWeight)} kg × ${exercise.defaultReps}</small></li>`).join('')}</ol></div><div class="card-actions"><button class="text-button" data-action="edit-routine" data-id="${routine.id}">Edit</button><button class="text-button danger" data-action="delete-routine" data-id="${routine.id}">Delete</button><button class="button button-small" data-action="start" data-id="${routine.id}">Start</button></div></article>`).join('')}</div>` : emptyPanel('No routines on this card yet', 'Add the exercises you repeat. Your first workout will be ready in about a minute.', 'Make a routine', 'new-routine')}
+    ${state.routines.length ? `<div class="routine-grid">${state.routines.map((routine) => `<article class="routine-card"><div><h3>${escapeHtml(routine.name)}</h3><ol>${routine.exercises.map((exercise) => `<li><span>${escapeHtml(exercise.name)}</span><small>${exercise.targetSets} sets · ${formatNumber(exercise.defaultWeight)} kg × ${exercise.defaultReps}</small></li>`).join('')}</ol></div><div class="card-actions"><button class="text-button" data-action="edit-routine" data-id="${escapeHtml(routine.id)}">Edit</button><button class="text-button danger" data-action="delete-routine" data-id="${escapeHtml(routine.id)}">Delete</button><button class="button button-small" data-action="start" data-id="${escapeHtml(routine.id)}">Start</button></div></article>`).join('')}</div>` : emptyPanel('No routines on this card yet', 'Add the exercises you repeat. Your first workout will be ready in about a minute.', 'Make a routine', 'new-routine')}
   </section>`;
 }
 
@@ -152,7 +152,7 @@ function ledgerView(): string {
   const corrected = correctedEventIds(state.events);
   return `<section class="page-section" aria-labelledby="ledger-heading">
     <div class="section-heading"><div><p class="eyebrow">Immutable history</p><h2 id="ledger-heading">Set ledger</h2><p>${setEvents.length} recorded event${setEvents.length === 1 ? '' : 's'}. Corrections are new rows; earlier values remain inspectable.</p></div><button class="button button-small" data-action="export-csv" ${setEvents.length ? '' : 'disabled'}>Export CSV</button></div>
-    ${setEvents.length ? `<ol class="ledger-list">${setEvents.map((event) => `<li class="ledger-row ${corrected.has(event.id) ? 'is-corrected' : ''}"><div class="ledger-date"><time datetime="${event.at}">${formatDate(event.at)}</time><span>${event.type === 'set.corrected' ? 'Correction' : corrected.has(event.id) ? 'Corrected' : 'Original'}</span></div><div class="ledger-main"><strong>${escapeHtml(event.exerciseName)}</strong><span>Set ${event.setNumber} · ${formatNumber(event.weight)} kg × ${event.reps}</span><small>${escapeHtml(event.routineName)}</small></div><button class="text-button" data-action="correct" data-id="${event.id}">${corrected.has(event.id) ? 'Correct again' : 'Correct'}</button></li>`).join('')}</ol>` : emptyPanel('The ledger is blank', 'Complete a set during a workout. It will appear here only after the device write succeeds.', state.routines.length ? 'Start a workout' : 'Make a routine', state.routines.length ? 'go-workout' : 'new-routine')}
+    ${setEvents.length ? `<ol class="ledger-list">${setEvents.map((event) => `<li class="ledger-row ${corrected.has(event.id) ? 'is-corrected' : ''}"><div class="ledger-date"><time datetime="${escapeHtml(event.at)}">${formatDate(event.at)}</time><span>${event.type === 'set.corrected' ? 'Correction' : corrected.has(event.id) ? 'Corrected' : 'Original'}</span></div><div class="ledger-main"><strong>${escapeHtml(event.exerciseName)}</strong><span>Set ${event.setNumber} · ${formatNumber(event.weight)} kg × ${event.reps}</span><small>${escapeHtml(event.routineName)}</small></div><button class="text-button" data-action="correct" data-id="${escapeHtml(event.id)}">${corrected.has(event.id) ? 'Correct again' : 'Correct'}</button></li>`).join('')}</ol>` : emptyPanel('The ledger is blank', 'Complete a set during a workout. It will appear here only after the device write succeeds.', state.routines.length ? 'Start a workout' : 'Make a routine', state.routines.length ? 'go-workout' : 'new-routine')}
   </section>`;
 }
 
@@ -181,7 +181,7 @@ function showRoutineDialog(routine?: Routine): void {
   const dialog = document.querySelector<HTMLDialogElement>('#routine-dialog');
   if (!dialog) return;
   const exercises = routine?.exercises ?? [{ id: localId('exercise'), name: '', targetSets: 3, defaultWeight: 20, defaultReps: 8 }];
-  dialog.innerHTML = `<form id="routine-form" method="dialog" data-id="${routine?.id ?? ''}">
+  dialog.innerHTML = `<form id="routine-form" method="dialog" data-id="${escapeHtml(routine?.id ?? '')}">
     <div class="dialog-heading"><div><p class="eyebrow">Reusable card</p><h2 id="routine-dialog-title">${routine ? 'Edit routine' : 'New routine'}</h2></div><button class="icon-button" type="button" data-action="close-dialog" aria-label="Close routine form">×</button></div>
     <label for="routine-name">Routine name</label><input id="routine-name" name="name" maxlength="60" value="${escapeHtml(routine?.name ?? '')}" required autocomplete="off">
     <fieldset><legend>Exercises</legend><div id="exercise-fields">${exercises.map(exerciseFields).join('')}</div><button class="text-button add-exercise" type="button" data-action="add-exercise">+ Add exercise</button></fieldset>
@@ -192,13 +192,13 @@ function showRoutineDialog(routine?: Routine): void {
 }
 
 function exerciseFields(exercise: Exercise): string {
-  return `<div class="exercise-fields" data-exercise-id="${exercise.id}"><label>Exercise name<input data-exercise-field="name" maxlength="60" value="${escapeHtml(exercise.name)}" required autocomplete="off"></label><label>Sets<input data-exercise-field="sets" type="number" min="1" max="20" value="${exercise.targetSets}" required></label><label>kg<input data-exercise-field="weight" type="number" inputmode="decimal" min="0" max="2000" step="0.5" value="${exercise.defaultWeight}" required></label><label>Reps<input data-exercise-field="reps" type="number" inputmode="numeric" min="0" max="1000" value="${exercise.defaultReps}" required></label><button class="icon-button remove-exercise" type="button" data-action="remove-exercise" aria-label="Remove ${escapeHtml(exercise.name || 'exercise')}">×</button></div>`;
+  return `<div class="exercise-fields" data-exercise-id="${escapeHtml(exercise.id)}"><label>Exercise name<input data-exercise-field="name" maxlength="60" value="${escapeHtml(exercise.name)}" required autocomplete="off"></label><label>Sets<input data-exercise-field="sets" type="number" min="1" max="20" value="${exercise.targetSets}" required></label><label>kg<input data-exercise-field="weight" type="number" inputmode="decimal" min="0" max="2000" step="0.5" value="${exercise.defaultWeight}" required></label><label>Reps<input data-exercise-field="reps" type="number" inputmode="numeric" min="0" max="1000" value="${exercise.defaultReps}" required></label><button class="icon-button remove-exercise" type="button" data-action="remove-exercise" aria-label="Remove ${escapeHtml(exercise.name || 'exercise')}">×</button></div>`;
 }
 
 function showCorrectionDialog(event: SetEvent): void {
   const dialog = document.querySelector<HTMLDialogElement>('#correction-dialog');
   if (!dialog) return;
-  dialog.innerHTML = `<form id="correction-form" method="dialog" data-id="${event.id}">
+  dialog.innerHTML = `<form id="correction-form" method="dialog" data-id="${escapeHtml(event.id)}">
     <div class="dialog-heading"><div><p class="eyebrow">Append a correction</p><h2 id="correction-dialog-title">${escapeHtml(event.exerciseName)} · set ${event.setNumber}</h2></div><button class="icon-button" type="button" data-action="close-dialog" aria-label="Close correction form">×</button></div>
     <p>The ${formatNumber(event.weight)} kg × ${event.reps} entry remains in history and will be marked corrected.</p><div class="load-fields"><label><span>Weight <small>kg</small></span><input name="weight" type="number" inputmode="decimal" min="0" max="2000" step="0.5" value="${event.weight}" required></label><span class="multiply" aria-hidden="true">×</span><label><span>Reps</span><input name="reps" type="number" inputmode="numeric" min="0" max="1000" value="${event.reps}" required></label></div>
     <p id="correction-form-error" class="form-error" role="alert"></p><div class="dialog-actions"><button class="button" type="button" data-action="close-dialog">Cancel</button><button class="button button-primary" type="submit" value="default">Save correction</button></div>

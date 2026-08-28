@@ -153,6 +153,9 @@ export async function restoreBackup(backup: Backup): Promise<{ routines: number;
   if (backup.format !== 'durable-set-log-backup' || backup.version !== 1 || !Array.isArray(backup.routines) || !Array.isArray(backup.events)) {
     throw new Error('This is not a Durable Set Log backup.');
   }
+  if (!backup.routines.every(validRoutine) || !backup.events.every(validEvent)) {
+    throw new Error('The backup contains an invalid routine or ledger event. Nothing was restored.');
+  }
   const db = await openDatabase();
   let routineCount = 0; let eventCount = 0;
   for (const routine of backup.routines) { await saveRoutine(routine); routineCount += 1; }
@@ -162,4 +165,37 @@ export async function restoreBackup(backup: Backup): Promise<{ routines: number;
     await appendEvent(original); eventCount += 1;
   }
   return { routines: routineCount, events: eventCount };
+}
+
+function nonEmpty(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+function validExercise(value: unknown): value is Routine['exercises'][number] {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Record<string, unknown>;
+  return nonEmpty(item.id) && nonEmpty(item.name) && Number.isInteger(item.targetSets) && Number(item.targetSets) > 0 &&
+    typeof item.defaultWeight === 'number' && Number.isFinite(item.defaultWeight) && item.defaultWeight >= 0 &&
+    Number.isInteger(item.defaultReps) && Number(item.defaultReps) >= 0;
+}
+
+function validRoutine(value: unknown): value is Routine {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Record<string, unknown>;
+  return nonEmpty(item.id) && nonEmpty(item.name) && nonEmpty(item.createdAt) && nonEmpty(item.updatedAt) &&
+    Array.isArray(item.exercises) && item.exercises.length > 0 && item.exercises.every(validExercise);
+}
+
+function validEvent(value: unknown): value is LogEvent {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Record<string, unknown>;
+  if (!nonEmpty(item.id) || !nonEmpty(item.at) || Number.isNaN(Date.parse(item.at)) || !nonEmpty(item.sessionId)) return false;
+  if (item.type === 'workout.finished') return true;
+  if (item.type === 'workout.started') {
+    return nonEmpty(item.routineId) && nonEmpty(item.routineName) && Array.isArray(item.exercises) && item.exercises.every(validExercise);
+  }
+  if (item.type !== 'set.completed' && item.type !== 'set.corrected') return false;
+  return nonEmpty(item.setId) && nonEmpty(item.routineName) && nonEmpty(item.exerciseId) && nonEmpty(item.exerciseName) &&
+    Number.isInteger(item.setNumber) && Number(item.setNumber) > 0 && typeof item.weight === 'number' && Number.isFinite(item.weight) && item.weight >= 0 &&
+    Number.isInteger(item.reps) && Number(item.reps) >= 0;
 }
