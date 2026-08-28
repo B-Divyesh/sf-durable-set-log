@@ -1,12 +1,10 @@
-const CACHE = 'durable-set-log-shell-v2';
-const SHELL = ['/', '/index.html', '/assets/app.js', '/assets/index.css', '/offline.html', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/art/ledger-stamp-640.avif', '/art/ledger-stamp-960.avif', '/art/ledger-stamp-640.webp', '/art/ledger-stamp-960.webp'];
+const CACHE = 'durable-set-log-shell-v4';
+const SHELL = ['/', '/index.html', '/offline.html', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/art/ledger-stamp-640.avif', '/art/ledger-stamp-960.avif', '/art/ledger-stamp-640.webp', '/art/ledger-stamp-960.webp'];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => Promise.all(SHELL.map(async (path) => {
-    const response = await fetch(new Request(path, { cache: 'reload' }));
-    if (!response.ok) throw new Error(`Could not cache ${path}`);
-    await cache.put(path, response);
-  }))));
+  event.waitUntil(caches.open(CACHE).then((cache) =>
+    cache.addAll(SHELL.map((path) => new Request(path, { cache: 'reload' }))),
+  ));
 });
 
 self.addEventListener('message', (event) => {

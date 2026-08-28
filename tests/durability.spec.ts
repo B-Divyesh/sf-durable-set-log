@@ -19,8 +19,10 @@ test('a confirmed set survives 100 offline reloads', async ({ page, context }) =
 
   await page.evaluate(async () => navigator.serviceWorker.ready);
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  await page.waitForFunction(async () => Boolean(await caches.match('/')) && Boolean(await caches.match('/index.html')));
   await page.reload();
   await expect(page.getByText(/Last saved: 82.5 kg × 5/)).toBeVisible();
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await context.setOffline(true);
   for (let attempt = 0; attempt < 100; attempt += 1) {
     await page.reload({ waitUntil: 'domcontentloaded' });
