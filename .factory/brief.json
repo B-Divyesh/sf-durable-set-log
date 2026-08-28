@@ -1,0 +1,12 @@
+{
+  "slug": "durable-set-log",
+  "title": "Durable Set Log",
+  "territory": "utilities",
+  "user": "A strength trainee using a phone during a workout who needs every completed set retained even if the PWA reloads, loses signal, or is evicted from memory.",
+  "smallest_useful_product": "A local PWA for reusable routines, one-tap set completion, edit-safe append-only local log, and CSV export/import.",
+  "success_measure": "Across 100 deliberate offline/reload tests, 100% of confirmed sets reappear after reopening.",
+  "artifact_class": "pwa-offline",
+  "monetization": "one-time",
+  "constraints": "Use IndexedDB with export/restore and conflict-free local identifiers; state clearly that this is not medical guidance; support large text and one-handed controls.",
+  "state": "RESEARCHED"
+}
