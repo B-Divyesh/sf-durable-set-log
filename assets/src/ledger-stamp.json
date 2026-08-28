@@ -1,0 +1,9 @@
+{
+  "generator": "/opt/fleet/lib/gen-image.sh",
+  "deployment": "factory-image",
+  "generated_at": "2026-08-28",
+  "size": "1536x1024",
+  "quality": "medium",
+  "prompt": "Use case: stylized-concept. Asset type: responsive PWA opening illustration. Scene/backdrop: warm recycled paper field. Subject: close crop of one simplified chalk-dusted hand pressing a square rubber stamp onto a workout ledger card, with one cropped barbell plate and three abstract tally blocks. Style/medium: original two-colour risograph editorial collage, chunky cut-paper silhouettes, visible soy-ink halftone dots, subtle misregistration, fibrous paper grain. Composition/framing: wide 3:2 landscape, strong silhouette, generous calm negative space, no UI mockup. Lighting/mood: flat printmaking, tactile, dependable, energetic. Color palette: deep aubergine violet, tomato coral, mustard yellow overprint, forest green, warm cream paper, near-black ink. Constraints: anatomically plausible hand with five fingers, simple equipment, no text, no letters, no numbers, no watermark, no logos, no brands, no gradients, no photorealism, no extra limbs, no medical imagery.",
+  "review": "Accepted: plausible five-finger hand, clear stamp and plate, no text, logos, brands, watermark, seams, or unintended symbols."
+}

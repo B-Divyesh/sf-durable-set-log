@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Durable Set Log app mark</title>
+  <rect width="512" height="512" rx="92" fill="#f2e9d8"/>
+  <path d="M92 116h300v300H92z" fill="#fff9ec" stroke="#171a17" stroke-width="22"/>
+  <path d="M130 166h204M130 229h142M130 292h96" fill="none" stroke="#5b2a86" stroke-width="25" stroke-linecap="square"/>
+  <path d="m282 306 42 42 82-99" fill="none" stroke="#1f6b4f" stroke-width="35" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M103 127h300v300" fill="none" stroke="#d94b3d" stroke-width="10" opacity=".8"/>
+</svg>
