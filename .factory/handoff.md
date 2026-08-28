@@ -1,8 +1,44 @@
-# Durable Set Log — build handoff
+# Durable Set Log — verification handoff
 
-Work order: `durable-set-log-build-1`<br>
-Completed: 2026-08-28<br>
-Deploy type: static, `npm run build` → `dist/`
+Work order: `durable-set-log-verify-1`<br>
+Verified candidate: `31841007288333734887f82a6620e1bf6f177523`<br>
+Verified URL: <https://durable-set-log.sociobot.in/><br>
+Date: 2026-08-28<br>
+**Release result: FAIL — do not release.**
+
+See [`.factory/verification.md`](verification.md) for exact commands, outputs,
+live evidence, and the full defect list. This verification supersedes the
+builder's self-reported pass metrics below; it does not change product code.
+
+## Release blockers
+
+- `.factory/claims.json` is missing, so the required every-claim test gate
+  could not run from a clean checkout.
+- The cold live screen has no `Try it with sample data` action. No sandboxed
+  sample/demo exists.
+- `?demo=1` is not isolated: a routine made there was visible in real mode.
+  `.factory/demo.md` is missing.
+- Published durability/privacy/CSV claims are therefore unlisted and untested.
+
+## Independent verification summary
+
+- `npm ci`, `npm test` (4/4), `npm run build`, and `npm run test:e2e` (4/4)
+  passed. The e2e suite's local durability case survived 100 offline reloads.
+- The deployed root and `sw.js` match this candidate byte-for-byte by SHA-256.
+  A fresh live workflow passed create, invalid-input rejection, set capture,
+  correction history, CSV/JSON export, and invalid CSV recovery with no page or
+  console errors. A confirmed live set survived 10 offline reloads.
+- Live axe scans at desktop and 390 px found zero serious/critical findings;
+  keyboard dialog/skip-link/reduced-motion checks passed.
+- A rate-limit burst reached 429 after approximately 29 successful invalid
+  license-verification requests and included `Retry-After`.
+- Additional remediation findings: no CSP/Permissions-Policy response header,
+  no real 404 (`/no-such-page` returns 200 shell), and the h1/first screen does
+  not explicitly name strength trainees.
+
+---
+
+## Builder implementation notes (not independent acceptance)
 
 ## What shipped
 
