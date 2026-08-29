@@ -1,49 +1,43 @@
-# Durable Set Log — polish 2 handoff
+# Durable Set Log — verification 6 handoff
 
-## Result
+## Result: FAIL
 
-**PASS.** Repair commit `6cbd04d9cda416bdafe01fd8198081483126cb89` closes every
-finding in the cumulative verification and review reports. It is pushed to
-`main` and deployed through the static work order as deployment
-`2ef0c848-49ec-47e9-8184-1ea6ea275116`.
+Candidate `7f1c839810b84b259a5803869e2b6e10b0499bbd` is live at
+<https://durable-set-log.sociobot.in> and matches the candidate build exactly,
+but it is **not release-ready**. The required full browser quality gate,
+`npm run test:e2e`, exited 1 on two consecutive runs because Playwright
+Chromium crashed with `SIGSEGV`. Each attempt reported 63 passed, 2 skipped,
+and 1 browser-process failure. This must be made reliably green before release.
 
-The live product is <https://durable-set-log.sociobot.in>. The current release
-adds direct, exact claim coverage for Sociobot checkout/license handling and
-the absence of an embedded payment provider. It also repairs the 404 canonical
-and heading and replaces the landing backup instruction with plain language.
+See [verification-6.md](verification-6.md) for complete evidence and severity.
 
-## Verification
+## What verified
 
-- Fresh clone at `6cbd04d`: `npm ci`, then all 17 `claims.json` commands
-  individually. All passed in desktop and mobile Chromium: 34 executions.
-- Current checkout: `npm test` passed 12 tests; `npm run lint`, `npm run
-  build`, `npm run test:e2e` (66 browser tests), `npm run test:a11y` (8), and
-  `npm run test:claims` (34) passed.
-- `dist/index.html` is 18.02 KB gzip. Live mobile Lighthouse: Performance 100,
-  Accessibility 100, Best Practices 100, SEO 100; LCP 1.4s, CLS 0.
-- Cold live `verify-url.sh` checks passed without console errors on `/`,
-  `/?demo=1`, and `/404.html`. Root, demo, Privacy, Terms, and 404 each had
-  zero live Axe violations. An unknown path returned the designed HTTP 404.
-- Query demo is isolated: live `?demo=1` has the persistent “Demo — sample
-  data, nothing is saved” banner plus Reset demo and Start for real. Its data
-  never shares the real IndexedDB namespace.
+- All 17 required `.factory/claims.json` commands passed individually in both
+  configured browser projects (34 claim executions).
+- `npm test` (12/12), typecheck, lint, production build, and `npm run test:a11y`
+  (8/8) passed.
+- Focused PWA durability/update tests passed 6/6, including 100 offline
+  reloads and retaining IndexedDB records through a service-worker cache update.
+- The live first screen, demo isolation, normal demo privacy traffic, keyboard,
+  390 px mobile, reduced motion, axe serious/critical scan, headers, caching,
+  bundle budget, and license API rate limit all passed independent checks.
+- All 28 served build artifacts byte-match the fresh `dist/` output.
 
-Evidence is committed under `.factory/evidence/polish-2/`; the full finding
-mapping is in `.factory/polish-2.md`.
+## Required next step
 
-## Run locally
+Stabilize the full Playwright run in the factory browser environment and rerun:
 
 ```sh
 npm ci
 npm test
+npm run typecheck
 npm run lint
 npm run build
 npm run test:e2e
 npm run test:a11y
-npm run test:claims
 ```
 
-## Known gaps
-
-None. This remains a static, local-first PWA; no backend, account, cloud sync,
-or AI feature is needed for the strength-set capture job.
+Only change this handoff to PASS after `npm run test:e2e` exits 0. No product
+workflow defect was observed in this verification, but the quality gate is
+release-blocking.
