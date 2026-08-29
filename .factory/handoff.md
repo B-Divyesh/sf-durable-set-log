@@ -68,13 +68,37 @@ reported 0 vulnerabilities.
 | Accessibility | `npm run test:a11y` passed 8/8. Axe found no serious/critical issue on root, demo, privacy, terms, or 404. Native dialog focus trap, Escape close, trigger restoration, skip link, and heading focus passed. |
 | Offline/update | The offline claim passed in both projects; the durability suite retained a confirmed set through 100 offline reloads in each project. The v5→v6 cache migration retained IndexedDB data. |
 | Privacy | The full demo workout request log remained same-origin. No analytics, CDN, cloud workout store, or cookie was introduced. |
-| Browser smoke | Factory `verify-url.sh` passed desktop and 390 px screenshots: title, `lang=en`, one h1, main, all image alts, labelled buttons, and zero console errors; measured local load was 539 ms. |
-| Performance | Mobile Lighthouse: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 0.8 s, LCP 1.8 s, TBT 40 ms, CLS 0. |
+| Browser smoke | Factory `verify-url.sh` passed the live desktop and 390 px screenshots: title, `lang=en`, one h1, main, all image alts, labelled buttons, and zero console errors; measured load was 569 ms. |
+| Performance | Live mobile Lighthouse: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 0.9 s, LCP 1.4 s, TBT 20 ms, CLS 0. |
 | Budgets | Production document 58,626 B raw / 17,582 B gzip; inline JS 40,109 B raw / 12,854 B gzip; inline CSS 16,166 B raw / 4,313 B gzip; mobile hero AVIF 34,400 B. |
 
 Playwright remains pinned to 1.58.2. This PWA has no backend, sign-in, package
 consumer, or AI runtime, so those checks are not applicable. The optional
 license flow remains limited to the approved Sociobot billing endpoint.
+
+## Production deployment and live identity
+
+`/opt/fleet/lib/deploy-static.sh durable-set-log dist` published deployment
+`2c431995-c1cc-43fe-8fdc-55186b7cba3a` successfully to Azure Static Web Apps
+and the ready custom domain <https://durable-set-log.sociobot.in>.
+
+- Live `/` and `dist/index.html` share SHA-256
+  `ff6862bb8cc574eedc0f9f8937f2cf85acd57a2862c994e5b270f2807bf743ce`.
+- Live `/demo` and `dist/demo/index.html` share SHA-256
+  `d18383f5995a4003d362963e8a72c779a88333d5e701d72bd70f14c3f184c7dc`.
+- Live `/sw.js` and `dist/sw.js` share SHA-256
+  `8e94a1b06177f9619710a09024d36d03cd9e55977478aaaf98dcf724d9be0305`.
+- Root security responses include CSP, Permissions-Policy, HSTS,
+  Referrer-Policy, and `nosniff`. The hashed AVIF returns `image/avif` and
+  `public, max-age=31536000, immutable`; `sw.js` returns
+  `no-cache, max-age=0`.
+- `/`, every concrete app/demo route, privacy, terms, manifest, and sitemap
+  returned 200. A random unknown route returned the designed document with
+  HTTP 404.
+- Live 390 px Chromium measured brand/Privacy/Terms at 44 px high, found
+  `scrollWidth == clientWidth == 390`, followed `/demo/routines` and Back,
+  reloaded the sample offline three times from cache v6, and recorded no
+  console errors or third-party requests.
 
 ## Run and deploy
 
