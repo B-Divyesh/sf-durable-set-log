@@ -1,6 +1,46 @@
 {
   "communities": {
     "0": [
+      "src_db_backup",
+      "src_main",
+      "src_main_beforeinstallpromptevent",
+      "src_main_beforeinstallpromptevent_prompt",
+      "src_main_completeset",
+      "src_main_currentview",
+      "src_main_documenttitle",
+      "src_main_download",
+      "src_main_emptypanel",
+      "src_main_errorview",
+      "src_main_escapehtml",
+      "src_main_exercisefields",
+      "src_main_exerciselogger",
+      "src_main_focuscurrentheading",
+      "src_main_formatdate",
+      "src_main_formatnumber",
+      "src_main_handleaction",
+      "src_main_icon",
+      "src_main_landingdetails",
+      "src_main_ledgerview",
+      "src_main_moreview",
+      "src_main_mount",
+      "src_main_navbutton",
+      "src_main_pagedescription",
+      "src_main_pageurl",
+      "src_main_render",
+      "src_main_routinesview",
+      "src_main_setflash",
+      "src_main_setviewlocation",
+      "src_main_showcorrectiondialog",
+      "src_main_showroutinedialog",
+      "src_main_showview",
+      "src_main_state",
+      "src_main_updatepagemetadata",
+      "src_main_view",
+      "src_main_viewfrompath",
+      "src_main_viewpath",
+      "src_main_workoutview"
+    ],
+    "1": [
       "src_db",
       "src_db_appendevent",
       "src_db_clearstoreddata",
@@ -27,52 +67,9 @@
       "src_id",
       "src_id_isonow",
       "src_id_localid",
-      "src_main_completeset",
-      "src_main_download",
-      "src_main_exercisefields",
-      "src_main_handleaction",
       "src_main_handleimport",
       "src_main_handlesubmit",
-      "src_main_refreshdata",
-      "src_main_setflash",
-      "src_main_showroutinedialog"
-    ],
-    "1": [
-      "src_db_backup",
-      "src_main",
-      "src_main_beforeinstallpromptevent",
-      "src_main_beforeinstallpromptevent_prompt",
-      "src_main_currentview",
-      "src_main_documenttitle",
-      "src_main_emptypanel",
-      "src_main_errorview",
-      "src_main_escapehtml",
-      "src_main_exerciselogger",
-      "src_main_focuscurrentheading",
-      "src_main_formatdate",
-      "src_main_formatnumber",
-      "src_main_icon",
-      "src_main_landingdetails",
-      "src_main_ledgerview",
-      "src_main_moreview",
-      "src_main_mount",
-      "src_main_navbutton",
-      "src_main_pagedescription",
-      "src_main_pageurl",
-      "src_main_render",
-      "src_main_routinesview",
-      "src_main_setviewlocation",
-      "src_main_showcorrectiondialog",
-      "src_main_showview",
-      "src_main_state",
-      "src_main_updatepagemetadata",
-      "src_main_view",
-      "src_main_viewfrompath",
-      "src_main_viewpath",
-      "src_main_workoutview",
-      "src_types_activeworkout",
-      "src_types_exercise",
-      "src_types_routine"
+      "src_main_refreshdata"
     ],
     "2": [
       "ref_dom",
@@ -140,8 +137,11 @@
       "src_ledger_correctedeventids",
       "src_ledger_currentsets",
       "src_types",
+      "src_types_activeworkout",
+      "src_types_exercise",
       "src_types_issetevent",
       "src_types_logevent",
+      "src_types_routine",
       "src_types_setevent",
       "src_types_workoutfinishedevent",
       "src_types_workoutstartedevent",
@@ -184,7 +184,6 @@
       "package_version"
     ],
     "7": [
-      "test",
       "tests_claims_spec",
       "tests_claims_spec_addroutine",
       "tests_claims_spec_downloadtext",
@@ -229,14 +228,14 @@
     ]
   },
   "cohesion": {
-    "0": 0.17647058823529413,
-    "1": 0.12605042016806722,
+    "0": 0.1337126600284495,
+    "1": 0.2019704433497537,
     "2": 0.07407407407407407,
     "3": 0.08695652173913043,
-    "4": 0.24183006535947713,
+    "4": 0.19047619047619047,
     "5": 0.23333333333333334,
     "6": 0.13333333333333333,
-    "7": 0.28888888888888886,
+    "7": 0.3333333333333333,
     "8": 0.5,
     "9": 1.0,
     "10": 1.0,
@@ -269,13 +268,13 @@
       "degree": 12
     },
     {
-      "id": "src_main_escapehtml",
-      "label": "escapeHtml()",
+      "id": "src_main_handlesubmit",
+      "label": "handleSubmit()",
       "degree": 11
     },
     {
-      "id": "src_main_handlesubmit",
-      "label": "handleSubmit()",
+      "id": "src_main_escapehtml",
+      "label": "escapeHtml()",
       "degree": 11
     },
     {
@@ -312,41 +311,41 @@
       "why": "inferred connection - not explicitly stated in source; bridges separate communities"
     },
     {
-      "source": "ledgerView()",
-      "target": "correctedEventIds()",
+      "source": "completeSet()",
+      "target": "appendEvent()",
       "source_files": [
         "src/main.ts",
-        "src/ledger.ts"
+        "src/db.ts"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
       "why": "bridges separate communities"
     },
     {
-      "source": "moreView()",
-      "target": "currentSets()",
+      "source": "handleAction()",
+      "target": "clearStoredData()",
       "source_files": [
         "src/main.ts",
-        "src/ledger.ts"
+        "src/db.ts"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
       "why": "bridges separate communities"
     },
     {
-      "source": "workoutView()",
-      "target": "currentSets()",
+      "source": "handleAction()",
+      "target": "createBackup()",
       "source_files": [
         "src/main.ts",
-        "src/ledger.ts"
+        "src/db.ts"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
       "why": "bridges separate communities"
     },
     {
-      "source": "init()",
-      "target": "seedDemoData()",
+      "source": "handleAction()",
+      "target": "finishWorkout()",
       "source_files": [
         "src/main.ts",
         "src/db.ts"
