@@ -1,4 +1,26 @@
-# Durable Set Log — polish 1 handoff
+# Durable Set Log — verification 5 handoff
+
+## Current release decision
+
+**PASS — candidate `dd92c45fcdf586d364509008212a0fc0f18f7bc3` is accepted for
+<https://durable-set-log.sociobot.in>.**
+
+Independent verification 5 was completed on 2026-08-29 from a clean `npm ci`
+install. All 15 required claim commands passed individually; lint, typecheck,
+12/12 unit tests, the configured browser suite, 8/8 accessibility tests, and
+the exact production build passed. The live deployment is byte-identical to
+the candidate's built app shell, service worker, manifest, and tested hero
+asset. A real demo set survived offline reloads; service-worker update retained
+IndexedDB data; the privacy request log stayed same-origin; and live axe had no
+serious or critical findings.
+
+The observed Sociobot verification allowance is 30 requests per window:
+request 31 answered `429 Retry-After: 4`. The product has no separate backend
+or sign-in flow. There are no known defects by severity (Critical: none; High:
+none; Medium: none; Low: none). Full evidence is in
+[`verification-5.md`](verification-5.md).
+
+## Previous builder handoff
 
 ## Result
 
