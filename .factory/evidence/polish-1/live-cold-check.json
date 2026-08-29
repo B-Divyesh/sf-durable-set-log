@@ -1,0 +1,71 @@
+{
+  "home": {
+    "title": "Durable Set Log — save strength sets offline",
+    "h1": [
+      "Log every strength set, even offline."
+    ],
+    "eyebrow": "Saved on this device",
+    "proof": [
+      "Saves each set before confirming it",
+      "Works offline after first visit",
+      "Export CSV any time"
+    ],
+    "demoHref": "/demo",
+    "overflow": false,
+    "status": 200,
+    "errors": [],
+    "onlySameOrigin": true
+  },
+  "demo": {
+    "title": "Demo — Durable Set Log",
+    "banner": "Demo — sample data, nothing is savedTry the sample strength workout safely.Reset demoStart for real",
+    "rows": 3,
+    "dbs": [
+      "durable-set-log:demo"
+    ],
+    "overflow": false,
+    "reset": true,
+    "realHasDemoEntry": 0,
+    "errors": []
+  },
+  "offline": {
+    "banner": true,
+    "sample": true
+  },
+  "routing": {
+    "url": "https://durable-set-log.sociobot.in/routines",
+    "focused": "Routines",
+    "title": "Routines — Durable Set Log"
+  },
+  "privacy": {
+    "title": "Privacy — Durable Set Log",
+    "header": true,
+    "nav": [
+      "Demo",
+      "Routines",
+      "Ledger",
+      "Privacy"
+    ],
+    "footer": "Durable Set Log keeps strength sets on this device.Privacy·Terms·Built by Param Factory · v1.0.4",
+    "mainFocused": true,
+    "overflow": false,
+    "skipFocused": true
+  },
+  "notFound": {
+    "title": "Page not found — Durable Set Log",
+    "h1": "That page is not in this log.",
+    "header": true,
+    "footer": true,
+    "robots": "noindex",
+    "overflow": false,
+    "status": 404
+  },
+  "links": {
+    "/": 200,
+    "/demo": 200,
+    "/routines": 200,
+    "/ledger": 200,
+    "/privacy/": 200,
+    "/terms/": 200
+  }
+}

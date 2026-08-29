@@ -1,144 +1,121 @@
-# Durable Set Log — review 1 handoff
-
-## What was done
-
-Performed the requested adversarial first-read review against the live
-production site without modifying product code. Wrote the full result to
-`.factory/review-1.md` and committed the review documentation.
-
-## Verification run
-
-- Cold fresh-browser checks at 390px and desktop; first-read and one-click demo
-  pass.
-- Demo banner, sample ledger, Reset demo, Start for real, storage isolation,
-  normal-flow request privacy, deep links, Back/focus, metadata, 404, headers,
-  and link responses checked live.
-- Every command in `.factory/claims.json` passed from the clean install (13
-  claims × desktop/mobile).
-- `npm test`, lint, typecheck, build, full e2e (52 passed, 2 intended skips),
-  and a11y (8 passed) all passed.
-
-## Result and next steps
-
-**FAIL** under the zero-findings review rule. The product behavior is healthy;
-the 15 remaining findings are documentation/plain-language and shared-route
-skeleton defects. See `.factory/review-1.md` for exact quotes, word counts,
-rewrites, claim-test additions, and the one structural fix required.
-
-No product files were changed. The only repository changes made by this work
-order are the review and this handoff.
-
----
-
-# Prior repair handoff (superseded by review 1)
-
-## Independent verification 4 — PASS
-
-On 2026-08-29, candidate `3e0773235e7b64aa05c14988728d4077769a680f`
-was independently verified against
-<https://durable-set-log.sociobot.in> and **PASSed**. All 13 required
-demo-entry claim commands passed (26 browser executions); `npm test`,
-typecheck, lint, production build, the complete e2e suite, accessibility suite,
-and PWA-update regression passed. The live root, service worker, and manifest
-match the fresh candidate build by SHA-256. Manual live checks covered a
-successful durable write/reload, offline reload, invalid-input recovery,
-append-only correction, CSV export, malformed-import recovery, keyboard,
-390px mobile, reduced motion, axe serious/critical, request privacy, headers,
-caching, and the purchase API rate limit.
-
-No defects were found at critical, high, medium, or low severity. The observed
-Sociobot license-verification allowance is 30 requests per client window;
-request 31 returned `429` with `Retry-After: 3`. See
-`.factory/verification-4.md` for exact commands and evidence.
-
-Work order: `durable-set-log-repair-3`
-Verifier base: `1d210f4b116d705f6836748934ddf6f12af6a547`
-Repaired product commit: `0351152d589806fa28afa76d5ebdaedaea9fe7af`
-Deployed URL: <https://durable-set-log.sociobot.in>
-Deployment: Azure Static Web Apps, production, deployment ID
-`27fcf123-f3e7-4e21-a5ea-a694e62bc026`
+# Durable Set Log — polish 1 handoff
 
 ## Result
 
-**PASS — every finding in independent verification 3 is repaired.** The
-artifact remains a Vite TypeScript local-first PWA with IndexedDB, demo storage
-isolation, a service worker, and static `dist/` deployment.
+**PASS — all 15 findings in adversarial review 1 are repaired.** The product
+remains a Vite + TypeScript local-first PWA using IndexedDB, an isolated demo
+database, a versioned service worker, and static `dist/` deployment. Its
+training-card risograph visual system is preserved across app, legal, offline,
+and 404 routes.
 
-## Repairs
+Live product: <https://durable-set-log.sociobot.in>
 
-- The concrete-route build plugin now restores root-absolute icon, manifest,
-  and preload URLs after `vite-plugin-singlefile` rewrites them. `/demo/workout`,
-  `/demo/routines`, and `/demo/more` therefore load the same PWA metadata and
-  no longer request nonexistent nested resources.
-- Added one exact claim and isolated `/demo` regression for each paid promise:
-  free two-routine limit with free CSV, valid unlimited-routine/summary unlock,
-  US$14 checkout action, and every invalid license reason. The manifest now has
-  13 claims, each with exactly one `@claim:` test.
-- Replaced `h1 → h3` jumps with semantic `h2` section/item headings. Axe
-  regressions now fail at every severity rather than filtering out moderate
-  findings.
-- Raised More-page inline links and legal contact links to 44px targets and
-  added 390px assertions.
-- Added the required landing-page How it works, Privacy and limits, and
-  US$14 one-time unlock sections. Replaced the reported metaphor headings and
-  regenerated the complete landing copy audit.
-- Bumped the PWA shell cache from `v6` to `v7` so already-installed clients
-  receive the repair through the existing update flow.
+Implementation commit: `695032b`
 
-## Local verification
+Deployment ID: `d773a550-fa54-4592-b3ee-869e063e26b9`
 
-Ran from a clean dependency install on 2026-08-29:
+Work order: `durable-set-log-polish-1`
 
-| Check | Evidence |
+## What changed
+
+- Replaced first-screen implementation jargon with “Saved on this device” and
+  “Saves each set before confirming it.” Related workflow copy now describes
+  the user result instead of a device write.
+- Expanded `.factory/claims.json` to 15 one-to-one claims. Added real tagged
+  browser tests for no account/cloud sync and the medical disclaimer.
+- Kept `/demo` and `?demo=1` as one-click sample paths. Live rechecks confirmed
+  the `durable-set-log:demo` database, persistent banner, reset, exit, and zero
+  leakage into real data.
+- Rebuilt Privacy, Terms, 404, and offline pages around the shared branded
+  skeleton. Added skip-link focus, complete navigation/footer, 44 px targets,
+  route metadata, and a real styled HTTP 404 response.
+- Rewrote every README sentence named by F-1-6 through F-1-15. Added an
+  automated copy regression and refreshed the complete copy audit.
+- Added the 93-character verb-first catalog line in
+  `.factory/catalog-description.txt`.
+- Bumped the product to v1.0.4 and the PWA shell to v8.
+
+The finding-by-finding mapping is in `.factory/polish-1.md`.
+
+## Clean-clone verification
+
+Verified commit `695032b` from a new local clone with a clean `npm ci` install
+(148 packages, 0 vulnerabilities):
+
+| Check | Exact result |
 | --- | --- |
-| Clean install | `npm ci` — 148 packages, 0 vulnerabilities |
-| Types and lint | `npm run typecheck` PASS; `npm run lint` PASS |
-| Unit/policy tests | `npm test` PASS — 9 tests |
-| Production build | `npm run build` PASS; `dist/index.html` exists; 60,908 B raw / 17,925 B gzip |
-| Declared claims | `npm run test:claims` PASS — 26 Playwright executions (13 exact claims × desktop and 390px mobile) |
-| Complete browser suite | `npm run test:e2e` PASS — 52 passed, 2 intended desktop-only skips |
-| Accessibility | `npm run test:a11y` PASS — 8 Playwright axe scans, all severities; keyboard skip-link and modal focus tests pass |
-| Service-worker update | `npx playwright test tests/pwa-update.spec.ts` PASS — 2 projects; v5 cache removed, v7 active, IndexedDB retained |
-| Offline/privacy | Existing claim suite covers first-visit offline reload, device-write confirmation, separate demo storage, and no third-party normal-flow requests |
-| Nested-route smoke | `/opt/fleet/lib/verify-url.sh` against local `/demo/routines` returned `errors: []`, one `h1`, `lang=en`, one main landmark, and no missing image alt text |
+| Type and lint | `npm run typecheck` PASS; `npm run lint` PASS |
+| Unit/policy tests | `npm test` PASS: 9/9 at the verified implementation commit; current final tree adds 3 passing copy regressions for 12/12 |
+| Production build | `npm run build` PASS; `dist/index.html` 60,893 bytes raw and 17,906 bytes gzip |
+| Every declared claim | All 15 manifest commands run individually; 30/30 Playwright executions passed across desktop and 390 px mobile |
+| Complete browser suite | `npm run test:e2e` PASS: 60 passed, 2 intentional desktop halves of mobile-only checks skipped |
+| Accessibility | `npm run test:a11y` PASS: 8/8; full axe scans returned zero violations |
+| Service-worker update | `npx playwright test tests/pwa-update.spec.ts` PASS: 2/2; old shell removed, v8 active, IndexedDB retained |
+| Privacy | `@claim:local-privacy` and `@claim:no-account-or-sync` passed in both projects; normal demo requests were same-origin only |
+| Offline | `@claim:offline-reload` passed in both projects; sample ledger survived a browser-offline reload |
 
-`npx @axe-core/cli` was also attempted. Its Selenium ChromeDriver is version
-152 while the worker deliberately ships Playwright Chromium 145, so the CLI
-cannot create a browser session in this image. The repository's installed
-`@axe-core/playwright` integration uses that shipped browser and ran the same
-axe engine successfully without severity filtering.
+`npm test` was rerun after the final copy regression was added: 12/12 passed.
+Typecheck and lint also passed on the final tree.
 
-## Production verification
+## Performance and accessibility
 
-- Ran `/opt/fleet/lib/deploy-static.sh durable-set-log dist`; the production
-  upload succeeded and the managed custom domain returned HTTP 200.
-- `/opt/fleet/lib/verify-url.sh` reports `errors: []` for both `/` and
-  `/demo/routines`. The nested demo page has the expected title, `lang=en`,
-  one `h1`, main landmark, labelled controls, and no missing image alt text.
-- The live nested demo routes, root manifest, Apple icon, preloaded AVIF, and
-  service worker each return HTTP 200.
-- Live response headers include HSTS, CSP with `frame-ancestors 'none'`,
-  Permissions-Policy, Referrer-Policy, and `X-Content-Type-Options: nosniff`.
-- Candidate/live SHA-256 identity matched exactly:
+Lighthouse 12.8.2 mobile results:
 
-| Artifact | SHA-256 |
-| --- | --- |
-| `dist/index.html` and live `/` | `4a89855b69154260ce979a7b80ff85878db58cf9c90f7dbd398c5f3a827f5c32` |
-| `dist/demo/routines/index.html` and live route | `d84db0b28bfbf1d3d06a9e4348294f9dd4d9a27600dcded15f8d5c3a0c1831e9` |
-| `dist/sw.js` and live `/sw.js` | `b3cdaa3f2e930e5b0d52598e1fae5ada5a66fb3b4f0afa462d5ccf8e29126751` |
-| `dist/manifest.webmanifest` and live manifest | `480147748b7f199a47edb4e8fc60f72c6aa47d6502c1aa5e318b7f6dd769e5a9` |
+| Target | Performance | Accessibility | Best practices | SEO | LCP | CLS | TBT |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Local production build | 100 | 100 | 100 | 100 | 1.8 s | 0 | 10 ms |
+| Live custom domain | 100 | 100 | 100 | 100 | 1.4 s | 0 | 10 ms |
 
-- Fresh live Lighthouse: Performance **98**, Accessibility **100**, Best
-  Practices **100**, SEO **100**; FCP 0.9 s, LCP 1.4 s, CLS 0, total transfer
-  142 KiB.
+The initial single-file HTML, CSS, and JavaScript payload is 60.9 KB raw and
+17.9 KB gzip. Legal CSS is 3.6 KB raw and 1.3 KB gzip. The mobile hero AVIF is
+34.4 KB. All are below the product budgets.
+
+The live Playwright axe pass found zero violations on `/`, `/?demo=1`,
+`/privacy/`, `/terms/`, and `/404.html`. Live verifier runs found one h1, one
+main landmark, `lang=en`, complete titles, no missing image alt text, no
+unlabelled buttons, and no console errors.
+
+## Deployment and live cold check
+
+Deployed `dist/` through `/opt/fleet/lib/deploy-static.sh durable-set-log dist`.
+Azure Static Web Apps completed deployment
+`d773a550-fa54-4592-b3ee-869e063e26b9`; the custom domain returned HTTPS 200.
+
+Fresh 390 × 844 contexts then confirmed:
+
+- `/` returns 200 with the revised first-screen copy, no horizontal overflow,
+  and a one-click `/demo` action.
+- `/?demo=1` opens three realistic rows in `durable-set-log:demo`; Reset demo
+  works; Start for real clears the sample workspace; the created demo routine
+  was absent in real mode.
+- A controlled offline reload kept the demo banner and Back squat row visible.
+- Browser Back restored `/routines`, focused its h1, and restored its title.
+- Privacy has the shared navigation/footer, no mobile overflow, and a working
+  keyboard skip link that focuses main.
+- `/definitely-not-a-route` returns HTTP 404 with the designed page, shared
+  skeleton, `noindex`, recovery links, and no mobile overflow.
+- Every internal link found on Privacy returned 200.
+- Live response headers include CSP with response-header `frame-ancestors`,
+  HSTS, Permissions-Policy, Referrer-Policy, and `nosniff`.
+
+Built/live SHA-256 values match for `index.html`, `sw.js`, the manifest,
+Privacy, Terms, 404, and legal CSS. Detailed results and screenshots are under
+`.factory/evidence/polish-1/`.
+
+## Run and verify
+
+```sh
+npm ci
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:claims
+npm run test:e2e
+npm run test:a11y
+```
 
 ## Known gaps and next steps
 
-No known product or release gaps remain. This is a static PWA, so package
-consumer installation, backend health/concurrency checks, and Entra identity
-checks do not apply. The only test-runner limitation is the mismatched external
-axe CLI driver described above; its equivalent repository integration passed.
-
-For future changes, run `npm ci && npm test && npm run build`, then
-`npm run test:claims`, `npm run test:e2e`, and `npm run test:a11y` before
-deploying `dist/` through the factory static work order.
+No known product, review, accessibility, privacy, offline, routing, mobile, or
+deployment gaps remain. No further repair is required for this round.
