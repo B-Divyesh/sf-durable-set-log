@@ -234,13 +234,13 @@
       "degree": 12
     },
     {
-      "id": "src_main_escapehtml",
-      "label": "escapeHtml()",
+      "id": "src_main_handlesubmit",
+      "label": "handleSubmit()",
       "degree": 11
     },
     {
-      "id": "src_main_handlesubmit",
-      "label": "handleSubmit()",
+      "id": "src_main_escapehtml",
+      "label": "escapeHtml()",
       "degree": 11
     },
     {
@@ -266,6 +266,17 @@
   ],
   "surprises": [
     {
+      "source": "init()",
+      "target": "seedDemoData()",
+      "source_files": [
+        "src/main.ts",
+        "src/db.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
       "source": "showRoutineDialog()",
       "target": "localId()",
       "source_files": [
@@ -277,26 +288,15 @@
       "why": "bridges separate communities"
     },
     {
-      "source": "handleImport()",
-      "target": "csvToSetEvents()",
+      "source": "completeSet()",
+      "target": "currentSets()",
       "source_files": [
         "src/main.ts",
-        "src/csv.ts"
+        "src/ledger.ts"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
       "why": "bridges separate communities"
-    },
-    {
-      "source": "eventsToCsv()",
-      "target": "isSetEvent()",
-      "source_files": [
-        "src/csv.ts",
-        "src/types.ts"
-      ],
-      "confidence": "INFERRED",
-      "relation": "indirect_call",
-      "why": "inferred connection - not explicitly stated in source"
     },
     {
       "source": "handleAction()",
@@ -310,15 +310,15 @@
       "why": "bridges separate communities"
     },
     {
-      "source": "correctedEventIds()",
+      "source": "handleAction()",
       "target": "isSetEvent()",
       "source_files": [
-        "src/ledger.ts",
+        "src/main.ts",
         "src/types.ts"
       ],
-      "confidence": "INFERRED",
-      "relation": "indirect_call",
-      "why": "inferred connection - not explicitly stated in source"
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
     }
   ],
   "tokens": {
