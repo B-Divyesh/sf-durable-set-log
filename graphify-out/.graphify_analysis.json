@@ -1,45 +1,9 @@
 {
   "communities": {
     "0": [
-      "src_license",
-      "src_license_cachedlicensestate",
-      "src_license_capturereturnedlicense",
-      "src_license_checkout_url",
-      "src_license_licensestate",
-      "src_license_product_slug",
-      "src_license_readverdict",
-      "src_license_storelicense",
-      "src_license_verdict",
-      "src_license_verifylicense",
-      "src_main",
-      "src_main_currentview",
-      "src_main_emptypanel",
-      "src_main_errorview",
-      "src_main_escapehtml",
-      "src_main_exerciselogger",
-      "src_main_formatdate",
-      "src_main_formatnumber",
-      "src_main_handleimport",
-      "src_main_handlesubmit",
-      "src_main_icon",
-      "src_main_init",
-      "src_main_ledgerview",
-      "src_main_moreview",
-      "src_main_mount",
-      "src_main_navbutton",
-      "src_main_refreshdata",
-      "src_main_registerserviceworker",
-      "src_main_render",
-      "src_main_routinesview",
-      "src_main_setflash",
-      "src_main_showcorrectiondialog",
-      "src_main_state",
-      "src_main_view",
-      "src_main_workoutview"
-    ],
-    "1": [
       "src_db",
       "src_db_appendevent",
+      "src_db_clearstoreddata",
       "src_db_createbackup",
       "src_db_finishworkout",
       "src_db_getactiveworkout",
@@ -54,6 +18,7 @@
       "src_db_requestresult",
       "src_db_restorebackup",
       "src_db_saveroutine",
+      "src_db_seeddemodata",
       "src_db_startworkout",
       "src_db_transactiondone",
       "src_db_validevent",
@@ -63,15 +28,17 @@
       "src_id_isonow",
       "src_id_localid",
       "src_main_completeset",
-      "src_main_download",
-      "src_main_exercisefields",
       "src_main_handleaction",
-      "src_main_showroutinedialog"
+      "src_main_handleimport",
+      "src_main_handlesubmit",
+      "src_main_refreshdata",
+      "src_main_setflash"
     ],
-    "2": [
+    "1": [
       "ref_dom",
       "ref_dom_iterable",
       "ref_es2022",
+      "ref_node",
       "ref_playwright_config_ts",
       "ref_src",
       "ref_tests",
@@ -96,6 +63,35 @@
       "tsconfig_compileroptions_usedefineforclassfields",
       "tsconfig_include"
     ],
+    "2": [
+      "src_db_backup",
+      "src_main",
+      "src_main_beforeinstallpromptevent",
+      "src_main_beforeinstallpromptevent_prompt",
+      "src_main_currentview",
+      "src_main_documenttitle",
+      "src_main_download",
+      "src_main_emptypanel",
+      "src_main_errorview",
+      "src_main_escapehtml",
+      "src_main_exercisefields",
+      "src_main_exerciselogger",
+      "src_main_focuscurrentheading",
+      "src_main_formatdate",
+      "src_main_formatnumber",
+      "src_main_icon",
+      "src_main_moreview",
+      "src_main_mount",
+      "src_main_navbutton",
+      "src_main_pageurl",
+      "src_main_render",
+      "src_main_routinesview",
+      "src_main_showcorrectiondialog",
+      "src_main_showroutinedialog",
+      "src_main_state",
+      "src_main_view",
+      "src_main_workoutview"
+    ],
     "3": [
       "src_csv",
       "src_csv_csv_headers",
@@ -104,10 +100,10 @@
       "src_csv_finitenumber",
       "src_csv_parsecsv",
       "src_csv_quote",
-      "src_db_backup",
       "src_ledger",
       "src_ledger_correctedeventids",
       "src_ledger_currentsets",
+      "src_main_ledgerview",
       "src_types",
       "src_types_activeworkout",
       "src_types_exercise",
@@ -126,18 +122,38 @@
       "package_devdependencies_axe_core_playwright",
       "package_devdependencies_playwright_core",
       "package_devdependencies_playwright_test",
+      "package_devdependencies_types_node",
       "package_devdependencies_typescript",
       "package_devdependencies_vite",
       "package_devdependencies_vite_plugin_singlefile",
       "package_devdependencies_vitest",
       "playwright_core",
       "playwright_test",
+      "types_node",
       "typescript",
       "vite",
       "vite_plugin_singlefile",
       "vitest"
     ],
     "5": [
+      "src_db_usestoragenamespace",
+      "src_license",
+      "src_license_cachedlicensestate",
+      "src_license_capturereturnedlicense",
+      "src_license_checkout_url",
+      "src_license_licensestate",
+      "src_license_product_slug",
+      "src_license_readverdict",
+      "src_license_storelicense",
+      "src_license_tokenkey",
+      "src_license_uselicensenamespace",
+      "src_license_verdict",
+      "src_license_verdictkey",
+      "src_license_verifylicense",
+      "src_main_init",
+      "src_main_registerserviceworker"
+    ],
+    "6": [
       "package",
       "package_name",
       "package_private",
@@ -147,59 +163,75 @@
       "package_scripts_preview",
       "package_scripts_test",
       "package_scripts_test_a11y",
+      "package_scripts_test_claims",
       "package_scripts_test_e2e",
       "package_type",
       "package_version"
     ],
-    "6": [
+    "7": [
       "public_sw",
       "public_sw_shell"
     ],
-    "7": [
-      "src_main_beforeinstallpromptevent",
-      "src_main_beforeinstallpromptevent_prompt"
-    ],
     "8": [
-      "playwright_config"
+      "vite_config",
+      "vite_config_demoentry"
     ],
     "9": [
-      "tests_accessibility_spec"
+      "playwright_config"
     ],
     "10": [
-      "tests_durability_spec"
+      "tests_accessibility_spec"
     ],
     "11": [
-      "vite_config"
+      "tests_claims_spec"
     ],
     "12": [
+      "tests_durability_spec"
+    ],
+    "13": [
+      "tests_hosting_test"
+    ],
+    "14": [
       "vitest_config"
     ]
   },
   "cohesion": {
-    "0": 0.14453781512605043,
-    "1": 0.19950738916256158,
-    "2": 0.07692307692307693,
+    "0": 0.20362903225806453,
+    "1": 0.07407407407407407,
+    "2": 0.15384615384615385,
     "3": 0.18181818181818182,
-    "4": 0.13333333333333333,
-    "5": 0.16666666666666666,
-    "6": 1.0,
+    "4": 0.11764705882352941,
+    "5": 0.23333333333333334,
+    "6": 0.15384615384615385,
     "7": 1.0,
     "8": 1.0,
     "9": 1.0,
     "10": 1.0,
     "11": 1.0,
-    "12": 1.0
+    "12": 1.0,
+    "13": 1.0,
+    "14": 1.0
   },
   "gods": [
     {
       "id": "src_main_handleaction",
       "label": "handleAction()",
-      "degree": 19
+      "degree": 22
     },
     {
       "id": "tsconfig_compileroptions",
       "label": "compilerOptions",
       "degree": 15
+    },
+    {
+      "id": "src_db_opendatabase",
+      "label": "openDatabase()",
+      "degree": 13
+    },
+    {
+      "id": "src_main_render",
+      "label": "render()",
+      "degree": 12
     },
     {
       "id": "src_main_escapehtml",
@@ -209,16 +241,6 @@
     {
       "id": "src_main_handlesubmit",
       "label": "handleSubmit()",
-      "degree": 11
-    },
-    {
-      "id": "src_main_render",
-      "label": "render()",
-      "degree": 11
-    },
-    {
-      "id": "src_db_opendatabase",
-      "label": "openDatabase()",
       "degree": 11
     },
     {
@@ -237,22 +259,22 @@
       "degree": 10
     },
     {
-      "id": "src_db_importevents",
-      "label": "importEvents()",
-      "degree": 9
+      "id": "src_main_init",
+      "label": "init()",
+      "degree": 10
     }
   ],
   "surprises": [
     {
-      "source": "ledgerView()",
-      "target": "isSetEvent()",
+      "source": "showRoutineDialog()",
+      "target": "localId()",
       "source_files": [
         "src/main.ts",
-        "src/types.ts"
+        "src/id.ts"
       ],
-      "confidence": "INFERRED",
-      "relation": "indirect_call",
-      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
     },
     {
       "source": "handleImport()",
@@ -266,37 +288,37 @@
       "why": "bridges separate communities"
     },
     {
-      "source": "handleImport()",
-      "target": "importEvents()",
+      "source": "eventsToCsv()",
+      "target": "isSetEvent()",
+      "source_files": [
+        "src/csv.ts",
+        "src/types.ts"
+      ],
+      "confidence": "INFERRED",
+      "relation": "indirect_call",
+      "why": "inferred connection - not explicitly stated in source"
+    },
+    {
+      "source": "handleAction()",
+      "target": "eventsToCsv()",
       "source_files": [
         "src/main.ts",
-        "src/db.ts"
+        "src/csv.ts"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
       "why": "bridges separate communities"
     },
     {
-      "source": "handleImport()",
-      "target": "restoreBackup()",
+      "source": "correctedEventIds()",
+      "target": "isSetEvent()",
       "source_files": [
-        "src/main.ts",
-        "src/db.ts"
+        "src/ledger.ts",
+        "src/types.ts"
       ],
-      "confidence": "EXTRACTED",
-      "relation": "calls",
-      "why": "bridges separate communities"
-    },
-    {
-      "source": "handleSubmit()",
-      "target": "appendEvent()",
-      "source_files": [
-        "src/main.ts",
-        "src/db.ts"
-      ],
-      "confidence": "EXTRACTED",
-      "relation": "calls",
-      "why": "bridges separate communities"
+      "confidence": "INFERRED",
+      "relation": "indirect_call",
+      "why": "inferred connection - not explicitly stated in source"
     }
   ],
   "tokens": {
