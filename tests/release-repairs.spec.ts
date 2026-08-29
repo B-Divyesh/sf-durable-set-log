@@ -58,6 +58,34 @@ test('share and legal route metadata is complete', async ({ page, request }) => 
   expect(sitemap).toContain('https://durable-set-log.sociobot.in/routines');
 });
 
+test('legal, offline, and 404 pages use the shared site skeleton', async ({ page }) => {
+  for (const route of ['/privacy/', '/terms/', '/offline.html', '/404.html']) {
+    await page.goto(route);
+    await expect(page.getByRole('link', { name: 'Durable Set Log home' })).toBeVisible();
+    const navigation = page.getByRole('navigation', { name: 'Primary navigation' });
+    await expect(navigation.getByRole('link', { name: 'Demo' })).toHaveAttribute('href', '/demo');
+    await expect(navigation.getByRole('link', { name: 'Routines' })).toHaveAttribute('href', '/routines');
+    await expect(navigation.getByRole('link', { name: 'Ledger' })).toHaveAttribute('href', '/ledger');
+    await expect(navigation.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy/');
+    await expect(page.locator('footer').getByRole('link', { name: 'Privacy' })).toBeVisible();
+    await expect(page.locator('footer').getByRole('link', { name: 'Terms' })).toBeVisible();
+    await expect(page.locator('footer')).toContainText('Built by Param Factory · v1.0.4');
+  }
+  await page.goto('/404.html');
+  await expect(page).toHaveTitle('Page not found — Durable Set Log');
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+  await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
+});
+
+test('legal skip links move keyboard focus to main content', async ({ page }) => {
+  await page.goto('/privacy/');
+  await page.keyboard.press('Tab');
+  const skip = page.getByRole('link', { name: 'Skip to privacy details' });
+  await expect(skip).toBeFocused();
+  await skip.press('Enter');
+  await expect(page.locator('#main')).toBeFocused();
+});
+
 test('nested demo documents resolve PWA head assets at the site root and load without errors', async ({ page, request }) => {
   const consoleErrors: string[] = [];
   const failedResources: string[] = [];
@@ -89,7 +117,7 @@ test('nested demo documents resolve PWA head assets at the site root and load wi
 test('landing page includes the required use, privacy, and paid-tier sections', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'How it works' })).toBeVisible();
-  await expect(page.getByText('The app confirms only after the device write succeeds.')).toBeVisible();
+  await expect(page.getByText('The app confirms only after it saves the set.')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Privacy and limits' })).toBeVisible();
   await expect(page.getByText('Workout records stay in this browser unless you export them. There is no account or cloud sync.')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'One-time unlock' })).toBeVisible();

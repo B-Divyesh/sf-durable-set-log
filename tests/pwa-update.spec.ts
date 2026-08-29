@@ -18,6 +18,6 @@ test('service-worker activation removes an old shell and retains IndexedDB data'
   await page.reload();
   await page.evaluate(async () => navigator.serviceWorker.ready);
   await expect.poll(() => page.evaluate(async () => (await caches.keys()).includes('durable-set-log-shell-v5'))).toBe(false);
-  expect(await page.evaluate(async () => (await caches.keys()).includes('durable-set-log-shell-v7'))).toBe(true);
+  expect(await page.evaluate(async () => (await caches.keys()).includes('durable-set-log-shell-v8'))).toBe(true);
   await expect(page.getByRole('heading', { name: 'Update survivor' })).toBeVisible();
 });

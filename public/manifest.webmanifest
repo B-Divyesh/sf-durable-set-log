@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Durable Set Log",
   "short_name": "Set Log",
-  "description": "An offline-first, append-only workout set ledger.",
+  "description": "Log strength sets on your phone and keep them through reloads or lost signal.",
   "start_url": "/?source=pwa&v=2",
   "scope": "/",
   "display": "standalone",

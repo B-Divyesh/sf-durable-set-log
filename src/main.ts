@@ -78,7 +78,7 @@ function documentTitle(): string {
   if (state.view === 'routines') return 'Routines — Durable Set Log';
   if (state.view === 'ledger') return 'Set ledger — Durable Set Log';
   if (state.view === 'more') return 'More — Durable Set Log';
-  return 'Durable Set Log — offline workout ledger';
+  return 'Durable Set Log — save strength sets offline';
 }
 
 function pageDescription(): string {
@@ -147,7 +147,7 @@ function render(): void {
       ${state.flash ? `<div class="flash flash-${state.flash.tone}" role="status">${escapeHtml(state.flash.message)}<button data-action="dismiss-flash" aria-label="Dismiss message">×</button></div>` : ''}
       ${state.dbError ? errorView() : currentView()}
     </main>
-    <footer class="app-footer"><span>Durable Set Log keeps strength sets on this device.</span><span class="footer-links"><a href="/privacy/">Privacy</a><span aria-hidden="true">·</span><a href="/terms/">Terms</a><span aria-hidden="true">·</span><span>Built by Param Factory · v1.0.3</span></span></footer>
+    <footer class="app-footer"><span>Durable Set Log keeps strength sets on this device.</span><span class="footer-links"><a href="/privacy/">Privacy</a><span aria-hidden="true">·</span><a href="/terms/">Terms</a><span aria-hidden="true">·</span><span>Built by Param Factory · v1.0.4</span></span></footer>
     <dialog id="routine-dialog" class="ink-dialog" aria-labelledby="routine-dialog-title"></dialog>
     <dialog id="correction-dialog" class="ink-dialog" aria-labelledby="correction-dialog-title"></dialog>
     ${state.updateWorker ? `<aside class="update-toast" role="status"><div><strong>Update available</strong><span>Install the latest app version.</span></div><button class="button button-small" data-action="apply-update">Update</button></aside>` : ''}
@@ -169,13 +169,13 @@ function workoutView(): string {
   if (!state.active) {
     return `<section class="workout-empty">
       <div class="hero-copy">
-        <p class="eyebrow">Append-only · offline-first</p>
+        <p class="eyebrow">Saved on this device</p>
         <h1>Log every strength set, even offline.</h1>
         <p>For strength trainees who need each completed set to survive a reload or lost signal.</p>
         ${state.routines.length ? `<div class="start-list" aria-label="Start a routine">${state.routines.map((routine) => `<button class="start-routine" data-action="start" data-id="${escapeHtml(routine.id)}"><span><strong>${escapeHtml(routine.name)}</strong><small>${routine.exercises.length} exercise${routine.exercises.length === 1 ? '' : 's'}</small></span><span aria-hidden="true">Start →</span></button>`).join('')}</div>` : `<div class="hero-actions"><a class="button button-primary" href="/demo">Try it with sample data</a><button class="button" data-action="new-routine">Make your first routine</button></div><p class="action-note">The sample opens a separate ledger and is never saved with your data.</p>`}
       </div>
       <figure class="hero-art"><picture><source type="image/avif" srcset="/art/ledger-stamp-640.d21a9309.avif 640w, /art/ledger-stamp-960.d2855062.avif 960w" sizes="(max-width: 760px) 100vw, 48vw"><img src="/art/ledger-stamp-640.1a534b29.webp" srcset="/art/ledger-stamp-640.1a534b29.webp 640w, /art/ledger-stamp-960.68c0987e.webp 960w" sizes="(max-width: 760px) 100vw, 48vw" width="960" height="640" alt="Risograph collage of a hand stamping a workout ledger beside a weight plate" decoding="async" fetchpriority="high"></picture><figcaption>A completed set saved in a local ledger.</figcaption></figure>
-      <div class="proof-strip"><span>${icon('check')} Confirms after device write</span><span>${icon('check')} Works offline after first visit</span><span>${icon('check')} Export CSV any time</span></div>
+      <div class="proof-strip"><span>${icon('check')} Saves each set before confirming it</span><span>${icon('check')} Works offline after first visit</span><span>${icon('check')} Export CSV any time</span></div>
       ${landingDetails()}
     </section>`;
   }
@@ -183,7 +183,7 @@ function workoutView(): string {
   const totalTarget = state.active.exercises.reduce((sum, exercise) => sum + exercise.targetSets, 0);
   return `<section class="live-workout" aria-labelledby="live-heading">
     <div class="workout-heading"><div><p class="eyebrow">In progress · since ${formatDate(state.active.startedAt)}</p><h1 id="live-heading">${escapeHtml(state.active.routineName)}</h1></div><div class="set-count"><strong>${sessionSets.length}</strong><span>of ${totalTarget} planned</span></div></div>
-    <div class="durability-note" role="note">${icon('check')} Every “Complete set” waits for a successful device write before it confirms.</div>
+    <div class="durability-note" role="note">${icon('check')} Every “Complete set” waits until the set is saved on this device.</div>
     <div class="exercise-stack">${state.active.exercises.map((exercise) => exerciseLogger(exercise, sessionSets)).join('')}</div>
     <button class="button button-finish" data-action="finish" ${state.busy ? 'disabled' : ''}>Finish workout</button>
   </section>`;
@@ -222,7 +222,7 @@ function ledgerView(): string {
   const corrected = correctedEventIds(state.events);
   return `<section class="page-section" aria-labelledby="ledger-heading">
     <div class="section-heading"><div><p class="eyebrow">Set history</p><h1 id="ledger-heading">Set ledger</h1><p>${setEvents.length} recorded event${setEvents.length === 1 ? '' : 's'}. Corrections are new rows; earlier values remain inspectable.</p></div><button class="button button-small" data-action="export-csv" ${setEvents.length ? '' : 'disabled'}>Export CSV</button></div>
-    ${setEvents.length ? `<ol class="ledger-list">${setEvents.map((event) => `<li class="ledger-row ${corrected.has(event.id) ? 'is-corrected' : ''}"><div class="ledger-date"><time datetime="${escapeHtml(event.at)}">${formatDate(event.at)}</time><span>${event.type === 'set.corrected' ? 'Correction' : corrected.has(event.id) ? 'Corrected' : 'Original'}</span></div><div class="ledger-main"><strong>${escapeHtml(event.exerciseName)}</strong><span>Set ${event.setNumber} · ${formatNumber(event.weight)} kg × ${event.reps}</span><small>${escapeHtml(event.routineName)}</small></div><button class="text-button" data-action="correct" data-id="${escapeHtml(event.id)}">${corrected.has(event.id) ? 'Correct again' : 'Correct'}</button></li>`).join('')}</ol>` : emptyPanel('The ledger is blank', 'Complete a set during a workout. It will appear here only after the device write succeeds.', state.routines.length ? 'Start a workout' : 'Make a routine', state.routines.length ? 'go-workout' : 'new-routine')}
+    ${setEvents.length ? `<ol class="ledger-list">${setEvents.map((event) => `<li class="ledger-row ${corrected.has(event.id) ? 'is-corrected' : ''}"><div class="ledger-date"><time datetime="${escapeHtml(event.at)}">${formatDate(event.at)}</time><span>${event.type === 'set.corrected' ? 'Correction' : corrected.has(event.id) ? 'Corrected' : 'Original'}</span></div><div class="ledger-main"><strong>${escapeHtml(event.exerciseName)}</strong><span>Set ${event.setNumber} · ${formatNumber(event.weight)} kg × ${event.reps}</span><small>${escapeHtml(event.routineName)}</small></div><button class="text-button" data-action="correct" data-id="${escapeHtml(event.id)}">${corrected.has(event.id) ? 'Correct again' : 'Correct'}</button></li>`).join('')}</ol>` : emptyPanel('The ledger is blank', 'Complete a set during a workout. It will appear here only after the set is saved.', state.routines.length ? 'Start a workout' : 'Make a routine', state.routines.length ? 'go-workout' : 'new-routine')}
   </section>`;
 }
 
@@ -249,7 +249,7 @@ function emptyPanel(title: string, body: string, actionLabel: string, action: st
 
 function landingDetails(): string {
   return `<div class="landing-details">
-    <section aria-labelledby="how-it-works-title"><h2 id="how-it-works-title">How it works</h2><ol class="how-it-works"><li><strong>Make a routine.</strong><span>Add the exercises and defaults you repeat.</span></li><li><strong>Complete each set.</strong><span>The app confirms only after the device write succeeds.</span></li><li><strong>Export your history.</strong><span>Save CSV or JSON before you clear browser data.</span></li></ol></section>
+    <section aria-labelledby="how-it-works-title"><h2 id="how-it-works-title">How it works</h2><ol class="how-it-works"><li><strong>Make a routine.</strong><span>Add the exercises and defaults you repeat.</span></li><li><strong>Complete each set.</strong><span>The app confirms only after it saves the set.</span></li><li><strong>Export your history.</strong><span>Save CSV or JSON before you clear browser data.</span></li></ol></section>
     <section aria-labelledby="privacy-limits-title"><h2 id="privacy-limits-title">Privacy and limits</h2><p>Workout records stay in this browser unless you export them. There is no account or cloud sync.</p><p>This app records training. It does not provide medical guidance.</p></section>
     <section class="landing-paid" aria-labelledby="one-time-unlock-title"><h2 id="one-time-unlock-title">One-time unlock</h2><p>Free includes two routines, set logging, corrections, and exports. Pay US$14 once for unlimited routines and an on-device training summary.</p><a class="button button-primary" href="/more">See the US$14 license</a></section>
   </div>`;
@@ -377,7 +377,7 @@ async function completeSet(exerciseId: string): Promise<void> {
   const event: SetEvent = { id: localId('event'), type: 'set.completed', at: isoNow(), sessionId: active.sessionId, setId: localId('set'), routineName: active.routineName, exerciseId, exerciseName: exercise.name, setNumber: done.length + 1, weight, reps };
   state.busy = true; render();
   try { await appendEvent(event); state.events.push(event); state.flash = { tone: 'success', message: `${exercise.name} set ${event.setNumber} saved on this device.` }; }
-  catch (error) { state.flash = { tone: 'error', message: `Set not confirmed: ${error instanceof Error ? error.message : 'device write failed'}. Try again.` }; }
+  catch (error) { state.flash = { tone: 'error', message: `Set not confirmed: ${error instanceof Error ? error.message : 'saving failed'}. Try again.` }; }
   finally { state.busy = false; render(); }
 }
 

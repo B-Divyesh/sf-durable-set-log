@@ -1,38 +1,34 @@
 # Durable Set Log
 
-Durable Set Log is a tiny, offline-first workout ledger for strength trainees
-who cannot afford to lose a confirmed set to a reload or poor signal. It has
-reusable routines, a one-tap set action, append-only correction history,
-CSV import/export, and full JSON backups. There is no account or cloud sync.
+Log strength sets on your phone, even without signal. Confirmed sets remain
+after reloads. Create repeatable routines, save sets with one tap, correct
+entries without deleting them, and import or export backups. There is no
+account or cloud sync.
 
 Live product: <https://durable-set-log.sociobot.in>
 
 Try the isolated sample at <https://durable-set-log.sociobot.in/demo>. The
-sample is stored in a separate browser database and is never mixed with a real
-ledger.
+sample uses separate browser storage. It never mixes with your real records.
 
-## How durability works
+## How records stay safe
 
-Workout data is written to IndexedDB. A set confirmation appears only after its
-immutable event has been added successfully. Editing a set appends a correction
-event instead of changing the original. Active workout metadata and start/end
-events are committed atomically. IDs use `crypto.randomUUID()`; CSV imports merge
-by ID and safely rename conflicting foreign events instead of overwriting data.
+Your workout records are saved in this browser. The app confirms a set only
+after it saves it. Correcting a set keeps the earlier value visible. Starting
+or finishing a workout saves its status and history together. Importing a file
+keeps your existing records when entries conflict.
 
-The service worker precaches the complete app shell and serves it offline. Local
-browser storage can still be removed by a person, browser, or operating system,
-so the app includes portable CSV and JSON backup paths.
+After your first visit, the app can open without a signal. Browser storage can
+still be cleared, so export a backup you need to keep.
 
 ## Product tiers
 
-Core logging, correction history, two routines, accessibility, and all data
-exports are free. A US$14 one-time Sociobot license unlocks unlimited routines
-and an on-device training summary. Checkout and verification use only
-`https://api.sociobot.in/api/v1/...`; no payment provider is embedded.
+Free includes two routines, set logging, corrections, and exports. Pay US$14
+once for unlimited routines and an on-device training summary. Sociobot handles
+checkout and license checks. The app does not embed a payment provider.
 
-## Develop and verify
+## Run locally
 
-Requires a current Node.js release and npm.
+Use a current Node.js release and npm.
 
 ```sh
 npm ci
@@ -45,36 +41,35 @@ npm run test:e2e
 npm run test:claims
 ```
 
-The exact deploy build command is `npm run build`. Static output lands in
-`dist/`, with `dist/index.html` at its root. Playwright is pinned to 1.58.2;
-set `PLAYWRIGHT_BROWSERS_PATH` to the factory browser directory or run
-`npx playwright install chromium` outside the worker image.
+The build command is `npm run build`. Static files appear in `dist/`, with
+`dist/index.html` at its root. Playwright 1.58.2 is pinned. Use the factory
+browser directory or run `npx playwright install chromium` when needed.
 
-Deploy `dist/` through the factory static-site work order. The checked-in
-`public/staticwebapp.config.json` supplies the production security headers,
-cache rules, MIME types, and 404 response.
+## Deployment notes
 
-`npm test` covers CSV safety, input limits, correction folding, and static
-hosting policy. `npm run test:e2e` covers
-keyboard/dialog accessibility, an axe serious/critical scan, append-only
-corrections, route history, metadata, mobile target sizes, conflict-free
-restore, and 100 consecutive offline reloads of a confirmed set.
-`npm run test:claims` runs each published reliability, recovery, privacy, CSV,
-and demo claim from the isolated `/demo` entry point. The mapping is in
-[`.factory/claims.json`](.factory/claims.json).
+Deploy `dist/` through the factory static-site work order. The deployment
+configuration sets security headers, caching, and the 404 page.
+
+## Contributor verification
+
+`npm test` checks data handling and hosting rules. `npm run test:e2e` checks the
+workout flow, keyboard use, mobile controls, recovery, and offline reloads.
+`npm run test:claims` checks each published promise with the sample workout.
+The claim list is in [`.factory/claims.json`](.factory/claims.json).
 
 ## Data and privacy
 
-No runtime CDN, third-party font, analytics SDK, ad tracker, or cloud workout
-store is used. See [`public/privacy/index.html`](public/privacy/index.html) and
-[`public/terms/index.html`](public/terms/index.html). Durable Set Log records
-training; it is not medical guidance.
+The app loads no ads, tracking tools, third-party fonts, or cloud workout
+storage while you log. Read the [Privacy notice](public/privacy/index.html) and
+[Terms](public/terms/index.html). Durable Set Log records training. It does not
+provide medical guidance.
 
-The researched opportunity is in [`.factory/brief.json`](.factory/brief.json),
-the product-specific visual system and generated-asset provenance are in
-[`.factory/design.md`](.factory/design.md), the sample sandbox is documented
-in [`.factory/demo.md`](.factory/demo.md), and verification notes are in
-[`.factory/handoff.md`](.factory/handoff.md).
+## Factory records
+
+- [Research brief](.factory/brief.json)
+- [Visual system and asset sources](.factory/design.md)
+- [Sample data guide](.factory/demo.md)
+- [Build and release evidence](.factory/handoff.md)
 
 ## License
 

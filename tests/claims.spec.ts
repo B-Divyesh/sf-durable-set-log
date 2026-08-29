@@ -1,4 +1,5 @@
 import { expect, test, type Download } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 
 async function downloadText(download: Download): Promise<string> {
   const stream = await download.createReadStream();
@@ -59,6 +60,30 @@ test('@claim:local-privacy The demo workout flow makes no third-party requests',
   await page.locator('[data-exercise="demo-back-squat"] [data-action="complete"]').click();
   await expect(page.getByText(/Back squat set 1 saved on this device/)).toBeVisible();
   expect(requests.every((url) => new URL(url).origin === 'http://127.0.0.1:4173')).toBe(true);
+});
+
+test('@claim:no-account-or-sync The app has no account or cloud sync', async ({ page }) => {
+  const requests: string[] = [];
+  page.on('request', (request) => requests.push(request.url()));
+  for (const route of ['/demo', '/demo/workout', '/demo/routines', '/demo/more']) {
+    await page.goto(route);
+    await expect(page.getByRole('link', { name: /sign in|log in|account|sync/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /sign in|log in|account|sync/i })).toHaveCount(0);
+    await expect(page.getByRole('textbox', { name: /email|account|sync/i })).toHaveCount(0);
+  }
+  await expect(page.getByText('There is no account or cloud sync.', { exact: false })).toBeVisible();
+  expect(requests.every((value) => {
+    const url = new URL(value);
+    return url.origin === 'http://127.0.0.1:4173' && !/(?:account|auth|login|signin|sync)/i.test(url.pathname);
+  })).toBe(true);
+});
+
+test('@claim:not-medical-guidance The medical-guidance disclaimer stays visible', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByText('This app records training. It does not provide medical guidance.')).toBeVisible();
+  await page.goto('/terms/');
+  await expect(page.getByText('It does not prescribe training and is not medical guidance.', { exact: false })).toBeVisible();
+  expect(readFileSync('README.md', 'utf8').replace(/\s+/g, ' ')).toContain('Durable Set Log records training. It does not provide medical guidance.');
 });
 
 test('@claim:demo-isolated Demo changes never appear in the real ledger', async ({ page }) => {

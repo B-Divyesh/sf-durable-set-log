@@ -41,7 +41,7 @@ test('dialog traps focus, closes with Escape, and restores its trigger', async (
 });
 
 test('app, demo, and supporting pages have no accessibility violations', async ({ page }) => {
-  for (const route of ['/routines', '/ledger', '/more', '/demo', '/demo/routines', '/demo/more', '/privacy/', '/terms/', '/404.html']) {
+  for (const route of ['/routines', '/ledger', '/more', '/demo', '/demo/routines', '/demo/more', '/privacy/', '/terms/', '/offline.html', '/404.html']) {
     await page.goto(route);
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('main')).toHaveCount(1);
