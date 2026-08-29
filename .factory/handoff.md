@@ -1,4 +1,36 @@
-# Durable Set Log — repair handoff
+# Durable Set Log — review 1 handoff
+
+## What was done
+
+Performed the requested adversarial first-read review against the live
+production site without modifying product code. Wrote the full result to
+`.factory/review-1.md` and committed the review documentation.
+
+## Verification run
+
+- Cold fresh-browser checks at 390px and desktop; first-read and one-click demo
+  pass.
+- Demo banner, sample ledger, Reset demo, Start for real, storage isolation,
+  normal-flow request privacy, deep links, Back/focus, metadata, 404, headers,
+  and link responses checked live.
+- Every command in `.factory/claims.json` passed from the clean install (13
+  claims × desktop/mobile).
+- `npm test`, lint, typecheck, build, full e2e (52 passed, 2 intended skips),
+  and a11y (8 passed) all passed.
+
+## Result and next steps
+
+**FAIL** under the zero-findings review rule. The product behavior is healthy;
+the 15 remaining findings are documentation/plain-language and shared-route
+skeleton defects. See `.factory/review-1.md` for exact quotes, word counts,
+rewrites, claim-test additions, and the one structural fix required.
+
+No product files were changed. The only repository changes made by this work
+order are the review and this handoff.
+
+---
+
+# Prior repair handoff (superseded by review 1)
 
 ## Independent verification 4 — PASS
 
