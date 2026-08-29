@@ -1,0 +1,22 @@
+[
+  {
+    "route": "/",
+    "violations": []
+  },
+  {
+    "route": "/?demo=1",
+    "violations": []
+  },
+  {
+    "route": "/privacy/",
+    "violations": []
+  },
+  {
+    "route": "/terms/",
+    "violations": []
+  },
+  {
+    "route": "/404.html",
+    "violations": []
+  }
+]
