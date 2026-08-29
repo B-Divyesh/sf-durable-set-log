@@ -1,35 +1,38 @@
 import { expect, test } from '@playwright/test';
+import { withFreshContext } from './helpers/fresh-context';
 
-test('a confirmed set survives 100 offline reloads', async ({ page, context }) => {
+test('a confirmed set survives 100 offline reloads', async ({ browser }, testInfo) => {
   test.setTimeout(180_000);
-  const consoleErrors: string[] = [];
-  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  await withFreshContext(browser, testInfo, async ({ context, page }) => {
+    const consoleErrors: string[] = [];
+    page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
 
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Make your first routine' }).click();
-  await page.getByLabel('Routine name').fill('Reload proof');
-  await page.getByLabel('Exercise name').fill('Back squat');
-  await page.getByRole('button', { name: 'Save routine' }).click();
-  await expect(page.getByText('Reload proof saved on this device.')).toBeVisible();
-  await page.getByRole('button', { name: /Reload proof/ }).click();
-  await page.getByLabel('Back squat weight in kilograms').fill('82.5');
-  await page.getByLabel('Back squat repetitions').fill('5');
-  await page.getByRole('button', { name: /Complete set 1/ }).click();
-  await expect(page.getByText('Back squat set 1 saved on this device.')).toBeVisible();
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Make your first routine' }).click();
+    await page.getByLabel('Routine name').fill('Reload proof');
+    await page.getByLabel('Exercise name').fill('Back squat');
+    await page.getByRole('button', { name: 'Save routine' }).click();
+    await expect(page.getByText('Reload proof saved on this device.')).toBeVisible();
+    await page.getByRole('button', { name: /Reload proof/ }).click();
+    await page.getByLabel('Back squat weight in kilograms').fill('82.5');
+    await page.getByLabel('Back squat repetitions').fill('5');
+    await page.getByRole('button', { name: /Complete set 1/ }).click();
+    await expect(page.getByText('Back squat set 1 saved on this device.')).toBeVisible();
 
-  await page.evaluate(async () => navigator.serviceWorker.ready);
-  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
-  await page.waitForFunction(async () => Boolean(await caches.match('/')) && Boolean(await caches.match('/index.html')));
-  await page.reload();
-  await expect(page.getByText(/Last saved: 82.5 kg × 5/)).toBeVisible();
-  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
-  await context.setOffline(true);
-  for (let attempt = 0; attempt < 100; attempt += 1) {
-    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.evaluate(async () => navigator.serviceWorker.ready);
+    await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+    await page.waitForFunction(async () => Boolean(await caches.match('/')) && Boolean(await caches.match('/index.html')));
+    await page.reload();
     await expect(page.getByText(/Last saved: 82.5 kg × 5/)).toBeVisible();
-  }
-  await context.setOffline(false);
-  expect(consoleErrors).toEqual([]);
+    await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+    await context.setOffline(true);
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await expect(page.getByText(/Last saved: 82.5 kg × 5/)).toBeVisible();
+    }
+    await context.setOffline(false);
+    expect(consoleErrors).toEqual([]);
+  });
 });
 
 test('correction appends history and CSV remains free', async ({ page }) => {

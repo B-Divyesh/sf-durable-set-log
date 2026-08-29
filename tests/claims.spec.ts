@@ -1,5 +1,6 @@
 import { expect, test, type Download } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { withFreshContext } from './helpers/fresh-context';
 
 async function downloadText(download: Download): Promise<string> {
   const stream = await download.createReadStream();
@@ -16,16 +17,18 @@ async function addRoutine(page: import('@playwright/test').Page, name: string): 
   await expect(page.getByText(`${name} saved on this device.`)).toBeVisible();
 }
 
-test('@claim:offline-reload Works offline after the first visit', async ({ page, context }) => {
-  await page.goto('/demo');
-  await expect(page.getByRole('heading', { name: 'Set ledger' })).toBeVisible();
-  await expect(page.getByText('Back squat', { exact: true }).first()).toBeVisible();
-  await page.evaluate(async () => navigator.serviceWorker.ready);
-  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
-  await context.setOffline(true);
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
-  await expect(page.getByText('Back squat', { exact: true }).first()).toBeVisible();
+test('@claim:offline-reload Works offline after the first visit', async ({ browser }, testInfo) => {
+  await withFreshContext(browser, testInfo, async ({ context, page }) => {
+    await page.goto('/demo');
+    await expect(page.getByRole('heading', { name: 'Set ledger' })).toBeVisible();
+    await expect(page.getByText('Back squat', { exact: true }).first()).toBeVisible();
+    await page.evaluate(async () => navigator.serviceWorker.ready);
+    await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+    await context.setOffline(true);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+    await expect(page.getByText('Back squat', { exact: true }).first()).toBeVisible();
+  });
 });
 
 test('@claim:confirmed-device-write A confirmed set survives a reload', async ({ page }) => {

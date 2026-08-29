@@ -11,12 +11,19 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'npm run preview',
-    port: 4173,
-    reuseExistingServer: true,
+    command: 'npm run preview -- --strictPort',
+    url: 'http://127.0.0.1:4173',
+    reuseExistingServer: false,
+    gracefulShutdown: { signal: 'SIGTERM', timeout: 5_000 },
   },
   projects: [
-    { name: 'desktop-chromium', use: { browserName: 'chromium', viewport: { width: 1440, height: 900 } } },
-    { name: 'mobile-chromium', use: { ...devices['iPhone 13'], browserName: 'chromium' } },
+    {
+      name: 'desktop-chromium',
+      use: { browserName: 'chromium', channel: 'chromium', viewport: { width: 1440, height: 900 } },
+    },
+    {
+      name: 'mobile-chromium',
+      use: { ...devices['iPhone 13'], browserName: 'chromium', channel: 'chromium' },
+    },
   ],
 });
