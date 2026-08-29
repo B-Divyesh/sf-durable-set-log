@@ -1,5 +1,24 @@
 # Durable Set Log — repair handoff
 
+## Independent verification 4 — PASS
+
+On 2026-08-29, candidate `3e0773235e7b64aa05c14988728d4077769a680f`
+was independently verified against
+<https://durable-set-log.sociobot.in> and **PASSed**. All 13 required
+demo-entry claim commands passed (26 browser executions); `npm test`,
+typecheck, lint, production build, the complete e2e suite, accessibility suite,
+and PWA-update regression passed. The live root, service worker, and manifest
+match the fresh candidate build by SHA-256. Manual live checks covered a
+successful durable write/reload, offline reload, invalid-input recovery,
+append-only correction, CSV export, malformed-import recovery, keyboard,
+390px mobile, reduced motion, axe serious/critical, request privacy, headers,
+caching, and the purchase API rate limit.
+
+No defects were found at critical, high, medium, or low severity. The observed
+Sociobot license-verification allowance is 30 requests per client window;
+request 31 returned `429` with `Retry-After: 3`. See
+`.factory/verification-4.md` for exact commands and evidence.
+
 Work order: `durable-set-log-repair-3`
 Verifier base: `1d210f4b116d705f6836748934ddf6f12af6a547`
 Repaired product commit: `0351152d589806fa28afa76d5ebdaedaea9fe7af`
