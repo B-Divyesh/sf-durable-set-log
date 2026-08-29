@@ -202,18 +202,8 @@
       "degree": 15
     },
     {
-      "id": "src_db_opendatabase",
-      "label": "openDatabase()",
-      "degree": 11
-    },
-    {
       "id": "src_main_escapehtml",
       "label": "escapeHtml()",
-      "degree": 11
-    },
-    {
-      "id": "src_main_render",
-      "label": "render()",
       "degree": 11
     },
     {
@@ -222,13 +212,23 @@
       "degree": 11
     },
     {
-      "id": "src_id_localid",
-      "label": "localId()",
-      "degree": 10
+      "id": "src_main_render",
+      "label": "render()",
+      "degree": 11
+    },
+    {
+      "id": "src_db_opendatabase",
+      "label": "openDatabase()",
+      "degree": 11
     },
     {
       "id": "src_id_isonow",
       "label": "isoNow()",
+      "degree": 10
+    },
+    {
+      "id": "src_id_localid",
+      "label": "localId()",
       "degree": 10
     },
     {
@@ -255,28 +255,6 @@
       "why": "inferred connection - not explicitly stated in source; bridges separate communities"
     },
     {
-      "source": "eventsToCsv()",
-      "target": "isSetEvent()",
-      "source_files": [
-        "src/csv.ts",
-        "src/types.ts"
-      ],
-      "confidence": "INFERRED",
-      "relation": "indirect_call",
-      "why": "inferred connection - not explicitly stated in source"
-    },
-    {
-      "source": "handleAction()",
-      "target": "eventsToCsv()",
-      "source_files": [
-        "src/main.ts",
-        "src/csv.ts"
-      ],
-      "confidence": "EXTRACTED",
-      "relation": "calls",
-      "why": "bridges separate communities"
-    },
-    {
       "source": "handleImport()",
       "target": "csvToSetEvents()",
       "source_files": [
@@ -288,8 +266,30 @@
       "why": "bridges separate communities"
     },
     {
-      "source": "refreshData()",
-      "target": "listRoutines()",
+      "source": "handleImport()",
+      "target": "importEvents()",
+      "source_files": [
+        "src/main.ts",
+        "src/db.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "handleImport()",
+      "target": "restoreBackup()",
+      "source_files": [
+        "src/main.ts",
+        "src/db.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "handleSubmit()",
+      "target": "appendEvent()",
       "source_files": [
         "src/main.ts",
         "src/db.ts"
