@@ -17,7 +17,7 @@ const mount = document.querySelector<HTMLDivElement>('#app');
 if (!mount) throw new Error('App mount point is missing.');
 const app: HTMLDivElement = mount;
 const pageUrl = new URL(location.href);
-const isDemoMode = location.pathname === '/demo' || pageUrl.searchParams.get('demo') === '1';
+const isDemoMode = location.pathname === '/demo' || location.pathname === '/demo/' || pageUrl.searchParams.get('demo') === '1';
 
 const state: {
   view: View; routines: Routine[]; events: LogEvent[]; active?: ActiveWorkout;

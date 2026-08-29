@@ -5,6 +5,8 @@ describe('static hosting release safeguards', () => {
   const config = JSON.parse(readFileSync('public/staticwebapp.config.json', 'utf8')) as {
     globalHeaders: Record<string, string>;
     responseOverrides: Record<string, { rewrite: string; statusCode: number }>;
+    navigationFallback?: unknown;
+    mimeTypes: Record<string, string>;
   };
 
   it('ships CSP and Permissions-Policy response headers', () => {
@@ -16,5 +18,10 @@ describe('static hosting release safeguards', () => {
   it('serves the designed 404 document with a 404 status', () => {
     expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html', statusCode: 404 });
     expect(readFileSync('public/404.html', 'utf8')).toContain('That page is not in this log.');
+    expect(config.navigationFallback).toBeUndefined();
+  });
+
+  it('keeps the demo as a concrete document and declares its manifest MIME type', () => {
+    expect(config.mimeTypes['.webmanifest']).toBe('application/manifest+json');
   });
 });
