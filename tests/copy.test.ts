@@ -17,6 +17,7 @@ describe('reviewed public copy', () => {
       'After your first visit, the app can open without a signal.',
       'Browser storage can still be cleared, so export a backup you need to keep.',
       'Sociobot handles checkout and license checks.',
+      'The app does not embed a payment provider.',
       'The deployment configuration sets security headers, caching, and the 404 page.',
       '`npm test` checks data handling and hosting rules.',
       '`npm run test:claims` checks each published promise with the sample workout.',

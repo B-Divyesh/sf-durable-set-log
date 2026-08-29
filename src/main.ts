@@ -249,7 +249,7 @@ function emptyPanel(title: string, body: string, actionLabel: string, action: st
 
 function landingDetails(): string {
   return `<div class="landing-details">
-    <section aria-labelledby="how-it-works-title"><h2 id="how-it-works-title">How it works</h2><ol class="how-it-works"><li><strong>Make a routine.</strong><span>Add the exercises and defaults you repeat.</span></li><li><strong>Complete each set.</strong><span>The app confirms only after it saves the set.</span></li><li><strong>Export your history.</strong><span>Save CSV or JSON before you clear browser data.</span></li></ol></section>
+    <section aria-labelledby="how-it-works-title"><h2 id="how-it-works-title">How it works</h2><ol class="how-it-works"><li><strong>Make a routine.</strong><span>Add the exercises and defaults you repeat.</span></li><li><strong>Complete each set.</strong><span>The app confirms only after it saves the set.</span></li><li><strong>Export your history.</strong><span>Export a spreadsheet or complete backup before clearing browser data.</span></li></ol></section>
     <section aria-labelledby="privacy-limits-title"><h2 id="privacy-limits-title">Privacy and limits</h2><p>Workout records stay in this browser unless you export them. There is no account or cloud sync.</p><p>This app records training. It does not provide medical guidance.</p></section>
     <section class="landing-paid" aria-labelledby="one-time-unlock-title"><h2 id="one-time-unlock-title">One-time unlock</h2><p>Free includes two routines, set logging, corrections, and exports. Pay US$14 once for unlimited routines and an on-device training summary.</p><a class="button button-primary" href="/more">See the US$14 license</a></section>
   </div>`;

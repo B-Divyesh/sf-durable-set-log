@@ -98,6 +98,20 @@
     "sandbox": "Fresh /demo context; assert the displayed price and approved checkout URL, then intercept and observe the explicit checkout navigation."
   },
   {
+    "id": "sociobot-payment-handling",
+    "claim": "Sociobot handles checkout and license checks",
+    "where": "README Product tiers",
+    "test": "npm run test:claims -- --grep @claim:sociobot-payment-handling",
+    "sandbox": "Fresh /demo context; assert the purchase link targets Sociobot checkout, then return a recorded Sociobot license-verification fixture and assert the app makes that verification request."
+  },
+  {
+    "id": "no-embedded-payment-provider",
+    "claim": "The app does not embed a payment provider",
+    "where": "README Product tiers",
+    "test": "npm run test:claims -- --grep @claim:no-embedded-payment-provider",
+    "sandbox": "Fresh /demo context; inspect the rendered payment area and outgoing requests, asserting there is no embedded payment frame, card-entry control, or third-party payment origin; the only purchase handoff is the Sociobot checkout link."
+  },
+  {
     "id": "license-revocation",
     "claim": "A refunded, revoked, expired, invalid, or wrong-product license no longer unlocks paid features",
     "where": "More, Terms",

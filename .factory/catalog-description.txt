@@ -1,1 +1,1 @@
-Log every strength set on your phone, even offline, with reusable routines and local backups.
+Log strength sets offline, keep confirmed sets after reloads, and export backups from your phone.

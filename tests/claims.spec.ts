@@ -246,6 +246,32 @@ test('@claim:purchase-price-checkout The US$14 one-time purchase action opens th
   await expect.poll(() => openedCheckout).toBe(true);
 });
 
+test('@claim:sociobot-payment-handling Sociobot handles checkout and license checks', async ({ page }) => {
+  const checkoutUrl = 'https://api.sociobot.in/api/v1/products/durable-set-log/checkout';
+  const verifyUrl = 'https://api.sociobot.in/api/v1/products/durable-set-log/verify?license=payment-handler-fixture';
+  const requests: string[] = [];
+  page.on('request', (request) => requests.push(request.url()));
+  await page.route(verifyUrl, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok' }) }));
+  await page.goto('/demo/more');
+  await expect(page.getByRole('link', { name: 'Buy once · $14' })).toHaveAttribute('href', checkoutUrl);
+  const verification = page.waitForResponse(verifyUrl);
+  await page.goto('/demo/more?license=payment-handler-fixture');
+  await verification;
+  await expect(page.getByText('Unlimited routines and training summary unlocked on this device.')).toBeVisible();
+  expect(requests).toContain(verifyUrl);
+});
+
+test('@claim:no-embedded-payment-provider The product hands payment to Sociobot instead of embedding it', async ({ page }) => {
+  const requests: string[] = [];
+  page.on('request', (request) => requests.push(request.url()));
+  await page.goto('/demo/more');
+  const paymentSection = page.getByRole('heading', { name: 'Unlimited routines' }).locator('..').locator('..');
+  await expect(paymentSection.locator('iframe')).toHaveCount(0);
+  await expect(paymentSection.locator('input[autocomplete*="cc-"], input[name*="card" i], input[name*="payment" i]')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Buy once · $14' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/durable-set-log/checkout');
+  expect(requests.every((value) => new URL(value).origin === 'http://127.0.0.1:4173')).toBe(true);
+});
+
 test('@claim:license-revocation Invalid and revoked license responses remove paid access', async ({ page }) => {
   const reasons = ['refunded', 'revoked', 'expired', 'invalid', 'wrong_product'];
   await page.route('https://api.sociobot.in/api/v1/products/durable-set-log/verify?license=*', async (route) => {

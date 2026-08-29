@@ -73,6 +73,8 @@ test('legal, offline, and 404 pages use the shared site skeleton', async ({ page
   }
   await page.goto('/404.html');
   await expect(page).toHaveTitle('Page not found — Durable Set Log');
+  await expect(page.getByRole('heading', { name: 'Page not found.' })).toBeVisible();
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://durable-set-log.sociobot.in/404.html');
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
   await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
 });
@@ -118,6 +120,7 @@ test('landing page includes the required use, privacy, and paid-tier sections', 
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'How it works' })).toBeVisible();
   await expect(page.getByText('The app confirms only after it saves the set.')).toBeVisible();
+  await expect(page.getByText('Export a spreadsheet or complete backup before clearing browser data.')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Privacy and limits' })).toBeVisible();
   await expect(page.getByText('Workout records stay in this browser unless you export them. There is no account or cloud sync.')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'One-time unlock' })).toBeVisible();

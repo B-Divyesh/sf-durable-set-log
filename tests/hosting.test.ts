@@ -18,7 +18,9 @@ describe('static hosting release safeguards', () => {
 
   it('serves the designed 404 document with a 404 status', () => {
     expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html', statusCode: 404 });
-    expect(readFileSync('public/404.html', 'utf8')).toContain('That page is not in this log.');
+    const notFound = readFileSync('public/404.html', 'utf8');
+    expect(notFound).toContain('Page not found.');
+    expect(notFound).toContain('<link rel="canonical" href="https://durable-set-log.sociobot.in/404.html">');
     expect(config.navigationFallback).toBeUndefined();
   });
 

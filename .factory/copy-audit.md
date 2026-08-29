@@ -23,7 +23,7 @@ Navigation labels are omitted. Counts use whitespace-separated words.
 | Complete each set. | 3 | Pass |
 | The app confirms only after it saves the set. | 9 | Pass; declared claim |
 | Export your history. | 3 | Pass |
-| Save CSV or JSON before you clear browser data. | 10 | Pass; declared backup claims |
+| Export a spreadsheet or complete backup before clearing browser data. | 10 | Pass; names the result before file choices |
 | Privacy and limits | 3 | Pass |
 | Workout records stay in this browser unless you export them. | 10 | Pass; declared claim |
 | There is no account or cloud sync. | 7 | Pass; declared claim |
@@ -57,8 +57,8 @@ word or unexplained implementation term.
 | Browser storage can still be cleared, so export a backup you need to keep. | 14 | Pass |
 | Free includes two routines, set logging, corrections, and exports. | 9 | Pass; declared claim |
 | Pay US$14 once for unlimited routines and an on-device training summary. | 12 | Pass; declared claim |
-| Sociobot handles checkout and license checks. | 6 | Pass |
-| The app does not embed a payment provider. | 8 | Pass |
+| Sociobot handles checkout and license checks. | 6 | Pass; declared claim |
+| The app does not embed a payment provider. | 8 | Pass; declared claim |
 | The deployment configuration sets security headers, caching, and the 404 page. | 11 | Pass; contributor context |
 | `npm test` checks data handling and hosting rules. | 8 | Pass; contributor context |
 | `npm run test:e2e` checks the workout flow, keyboard use, mobile controls, recovery, and offline reloads. | 15 | Pass; contributor context |
