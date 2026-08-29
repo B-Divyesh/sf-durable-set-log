@@ -50,6 +50,10 @@ The exact deploy build command is `npm run build`. Static output lands in
 set `PLAYWRIGHT_BROWSERS_PATH` to the factory browser directory or run
 `npx playwright install chromium` outside the worker image.
 
+Deploy `dist/` through the factory static-site work order. The checked-in
+`public/staticwebapp.config.json` supplies the production security headers,
+cache rules, MIME types, and 404 response.
+
 `npm test` covers CSV safety, input limits, correction folding, and static
 hosting policy. `npm run test:e2e` covers
 keyboard/dialog accessibility, an axe serious/critical scan, append-only

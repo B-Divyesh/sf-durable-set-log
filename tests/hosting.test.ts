@@ -37,7 +37,7 @@ describe('static hosting release safeguards', () => {
 
   it('ships a versioned service worker with a safe update path', () => {
     const worker = readFileSync('public/sw.js', 'utf8');
-    expect(worker).toContain("durable-set-log-shell-v6");
+    expect(worker).toContain("durable-set-log-shell-v7");
     expect(worker).toContain('SKIP_WAITING');
     expect(worker).toContain('self.clients.claim()');
     expect(worker).toContain("key !== CACHE");

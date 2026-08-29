@@ -61,5 +61,33 @@
     "where": "README",
     "test": "npm run test:claims -- --grep @claim:atomic-workout-write",
     "sandbox": "Fresh /demo context; start and finish a sample workout, reading IndexedDB transactions to assert active state and matching boundary events change together."
+  },
+  {
+    "id": "free-routine-limit",
+    "claim": "Free keeps two routines while the ledger and CSV export remain available",
+    "where": "Landing paid-tier section, Routines, More, README, Terms",
+    "test": "npm run test:claims -- --grep @claim:free-routine-limit",
+    "sandbox": "Fresh /demo context; add a second routine, assert New routine is disabled with the free-limit explanation, then prove the sample ledger can still export CSV."
+  },
+  {
+    "id": "paid-summary-unlock",
+    "claim": "A valid one-time license unlocks unlimited routines and the on-device training summary",
+    "where": "Landing paid-tier section, More, README, Terms",
+    "test": "npm run test:claims -- --grep @claim:paid-summary-unlock",
+    "sandbox": "Fresh /demo context; use a routed valid Sociobot verification fixture, assert the summary is visible, and create a third routine."
+  },
+  {
+    "id": "purchase-price-checkout",
+    "claim": "The US$14 one-time purchase action opens the Sociobot checkout endpoint",
+    "where": "Landing paid-tier section, More, README, Terms",
+    "test": "npm run test:claims -- --grep @claim:purchase-price-checkout",
+    "sandbox": "Fresh /demo context; assert the displayed price and approved checkout URL, then intercept and observe the explicit checkout navigation."
+  },
+  {
+    "id": "license-revocation",
+    "claim": "A refunded, revoked, expired, invalid, or wrong-product license no longer unlocks paid features",
+    "where": "More, Terms",
+    "test": "npm run test:claims -- --grep @claim:license-revocation",
+    "sandbox": "Fresh /demo context; route each Sociobot verification fixture as invalid, then assert the inactive notice, purchase action, and absent paid summary."
   }
 ]

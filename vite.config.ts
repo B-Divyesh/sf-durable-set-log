@@ -13,12 +13,26 @@ const routeDocuments = [
   { path: 'demo/more', title: 'Demo data tools — Durable Set Log', description: 'Try backup, restore, import, and export with separate sample data.' },
 ];
 
+/**
+ * vite-plugin-singlefile rewrites public head assets to relative paths. That
+ * works for / but breaks concrete documents such as /demo/routines, where
+ * `./manifest.webmanifest` resolves to a nonexistent nested file. Keep the
+ * PWA metadata rooted for every document that this plugin writes.
+ */
+function withRootedHeadAssets(document: string): string {
+  return document
+    .replaceAll('href="./icons/', 'href="/icons/')
+    .replaceAll('href="./manifest.webmanifest"', 'href="/manifest.webmanifest"')
+    .replaceAll('href="./art/', 'href="/art/');
+}
+
 /** Concrete route documents preserve deep links while unknown URLs retain a true 404 status. */
 const concreteRoutes = {
   name: 'durable-set-log-demo-entry',
   closeBundle() {
     const output = resolve(process.cwd(), 'dist');
-    const rootDocument = readFileSync(resolve(output, 'index.html'), 'utf8');
+    const rootDocument = withRootedHeadAssets(readFileSync(resolve(output, 'index.html'), 'utf8'));
+    writeFileSync(resolve(output, 'index.html'), rootDocument);
     for (const route of routeDocuments) {
       const canonical = `https://durable-set-log.sociobot.in/${route.path}`;
       const document = rootDocument

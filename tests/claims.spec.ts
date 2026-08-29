@@ -7,6 +7,14 @@ async function downloadText(download: Download): Promise<string> {
   return Buffer.concat(chunks).toString('utf8');
 }
 
+async function addRoutine(page: import('@playwright/test').Page, name: string): Promise<void> {
+  await page.getByRole('button', { name: 'New routine' }).click();
+  await page.getByLabel('Routine name').fill(name);
+  await page.getByLabel('Exercise name').fill('Fixture lift');
+  await page.getByRole('button', { name: 'Save routine' }).click();
+  await expect(page.getByText(`${name} saved on this device.`)).toBeVisible();
+}
+
 test('@claim:offline-reload Works offline after the first visit', async ({ page, context }) => {
   await page.goto('/demo');
   await expect(page.getByRole('heading', { name: 'Set ledger' })).toBeVisible();
@@ -172,4 +180,61 @@ test('@claim:atomic-workout-write Active workout state and boundary events commi
   }, started.active.sessionId);
   expect(finished.active).toBeUndefined();
   expect(finished.finishes).toBe(1);
+});
+
+test('@claim:free-routine-limit Free keeps two routines while ledger and CSV export remain available', async ({ page }) => {
+  await page.goto('/demo/routines');
+  await addRoutine(page, 'Free fixture routine');
+  await expect(page.getByText('Free keeps two routines. The one-time unlock removes this limit; your ledger and exports always stay free.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'New routine' })).toBeDisabled();
+  await page.getByRole('link', { name: 'Ledger' }).click();
+  await expect(page.getByRole('button', { name: 'Export CSV' })).toBeEnabled();
+});
+
+test('@claim:paid-summary-unlock A valid license unlocks unlimited routines and the on-device training summary', async ({ page }) => {
+  const verifyUrl = 'https://api.sociobot.in/api/v1/products/durable-set-log/verify?license=paid-fixture';
+  await page.route(verifyUrl, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok' }) }));
+  const verification = page.waitForResponse(verifyUrl);
+  await page.goto('/demo/more?license=paid-fixture');
+  await verification;
+  await expect(page.getByText('Unlimited routines and training summary unlocked on this device.')).toBeVisible();
+  await expect(page.getByText('Workouts logged', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Routines' }).click();
+  await addRoutine(page, 'Unlocked fixture routine one');
+  await addRoutine(page, 'Unlocked fixture routine two');
+  await expect(page.getByRole('heading', { name: 'Unlocked fixture routine two' })).toBeVisible();
+  await expect(page.getByText('Free keeps two routines. The one-time unlock removes this limit; your ledger and exports always stay free.')).toHaveCount(0);
+});
+
+test('@claim:purchase-price-checkout The US$14 one-time purchase action opens the Sociobot checkout endpoint', async ({ page }) => {
+  const checkoutUrl = 'https://api.sociobot.in/api/v1/products/durable-set-log/checkout';
+  await page.goto('/demo/more');
+  await expect(page.getByText('Pay US$14 once', { exact: false })).toBeVisible();
+  const buy = page.getByRole('link', { name: 'Buy once · $14' });
+  await expect(buy).toHaveAttribute('href', checkoutUrl);
+  let openedCheckout = false;
+  await page.route(checkoutUrl, async (route) => {
+    openedCheckout = true;
+    await route.fulfill({ status: 200, contentType: 'text/html', body: '<title>Hosted checkout</title>' });
+  });
+  await buy.click({ noWaitAfter: true });
+  await expect.poll(() => openedCheckout).toBe(true);
+});
+
+test('@claim:license-revocation Invalid and revoked license responses remove paid access', async ({ page }) => {
+  const reasons = ['refunded', 'revoked', 'expired', 'invalid', 'wrong_product'];
+  await page.route('https://api.sociobot.in/api/v1/products/durable-set-log/verify?license=*', async (route) => {
+    const token = new URL(route.request().url()).searchParams.get('license') ?? '';
+    const reason = token.replace('-fixture', '');
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ valid: false, reason }) });
+  });
+  for (const reason of reasons) {
+    const verifyUrl = `https://api.sociobot.in/api/v1/products/durable-set-log/verify?license=${reason}-fixture`;
+    const verification = page.waitForResponse(verifyUrl);
+    await page.goto(`/demo/more?license=${reason}-fixture`);
+    await verification;
+    await expect(page.getByText(`License no longer active (${reason}).`)).toBeVisible();
+    await expect(page.getByText('Unlimited routines and training summary unlocked on this device.')).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Buy once · $14' })).toBeVisible();
+  }
 });
