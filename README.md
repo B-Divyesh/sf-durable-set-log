@@ -36,6 +36,8 @@ Requires a current Node.js release and npm.
 
 ```sh
 npm ci
+npm run typecheck
+npm run lint
 npm run dev
 npm test
 npm run build
@@ -48,11 +50,13 @@ The exact deploy build command is `npm run build`. Static output lands in
 set `PLAYWRIGHT_BROWSERS_PATH` to the factory browser directory or run
 `npx playwright install chromium` outside the worker image.
 
-`npm test` covers CSV safety and correction folding. `npm run test:e2e` covers
+`npm test` covers CSV safety, input limits, correction folding, and static
+hosting policy. `npm run test:e2e` covers
 keyboard/dialog accessibility, an axe serious/critical scan, append-only
-corrections, and 100 consecutive offline reloads of a confirmed set.
-`npm run test:claims` runs each published reliability, privacy, CSV, and demo
-claim from the isolated `/demo` entry point. The mapping is in
+corrections, route history, metadata, mobile target sizes, conflict-free
+restore, and 100 consecutive offline reloads of a confirmed set.
+`npm run test:claims` runs each published reliability, recovery, privacy, CSV,
+and demo claim from the isolated `/demo` entry point. The mapping is in
 [`.factory/claims.json`](.factory/claims.json).
 
 ## Data and privacy

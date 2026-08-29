@@ -23,3 +23,29 @@ test('routine dialog is keyboard operable', async ({ page }) => {
   await page.getByRole('button', { name: 'Cancel' }).click();
   await expect(page.getByRole('dialog')).not.toBeVisible();
 });
+
+test('dialog traps focus, closes with Escape, and restores its trigger', async ({ page }) => {
+  await page.goto('/');
+  const trigger = page.getByRole('button', { name: 'Make your first routine' });
+  await trigger.focus();
+  await trigger.press('Enter');
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  for (let press = 0; press < 8; press += 1) {
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(() => document.activeElement?.closest('dialog')?.id)).toBe('routine-dialog');
+  }
+  await page.keyboard.press('Escape');
+  await expect(dialog).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+});
+
+test('demo and supporting pages have no serious accessibility violations', async ({ page }) => {
+  for (const route of ['/demo', '/privacy/', '/terms/', '/404.html']) {
+    await page.goto(route);
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('main')).toHaveCount(1);
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? '')), route).toEqual([]);
+  }
+});

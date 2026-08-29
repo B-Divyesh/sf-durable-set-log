@@ -33,5 +33,33 @@
     "where": "Landing action, demo banner, demo documentation",
     "test": "npm run test:claims -- --grep @claim:demo-isolated",
     "sandbox": "Fresh context; create a routine at /?demo=1, navigate to /, and assert the real ledger does not show it."
+  },
+  {
+    "id": "append-only-corrections",
+    "claim": "Corrections are new rows; earlier values remain inspectable",
+    "where": "Ledger, README",
+    "test": "npm run test:claims -- --grep @claim:append-only-corrections",
+    "sandbox": "Fresh /demo context; correct a sample set, assert the ledger gains one row, and assert both the corrected and replacement values remain visible."
+  },
+  {
+    "id": "json-backup-restore",
+    "claim": "A JSON backup includes and restores reusable routines and ledger events without overwriting existing records",
+    "where": "More, README",
+    "test": "npm run test:claims -- --grep @claim:json-backup-restore",
+    "sandbox": "Fresh /demo context; inspect an exported backup, delete and restore its routine, then edit locally and prove restoring the older backup keeps the local edit."
+  },
+  {
+    "id": "csv-collision-safe",
+    "claim": "CSV imports merge by event ID and safely rename collisions instead of overwriting records",
+    "where": "More, README",
+    "test": "npm run test:claims -- --grep @claim:csv-collision-safe",
+    "sandbox": "Fresh /demo context; change a CSV row while retaining its event ID, import it, and assert both original and imported values remain."
+  },
+  {
+    "id": "atomic-workout-write",
+    "claim": "Active workout state and its start and finish events are committed atomically",
+    "where": "README",
+    "test": "npm run test:claims -- --grep @claim:atomic-workout-write",
+    "sandbox": "Fresh /demo context; start and finish a sample workout, reading IndexedDB transactions to assert active state and matching boundary events change together."
   }
 ]

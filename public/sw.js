@@ -1,5 +1,5 @@
-const CACHE = 'durable-set-log-shell-v5';
-const SHELL = ['/', '/index.html', '/offline.html', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/art/ledger-stamp-640.avif', '/art/ledger-stamp-960.avif', '/art/ledger-stamp-640.webp', '/art/ledger-stamp-960.webp'];
+const CACHE = 'durable-set-log-shell-v6';
+const SHELL = ['/', '/index.html', '/demo', '/routines', '/ledger', '/more', '/demo/workout', '/demo/routines', '/demo/more', '/privacy/', '/terms/', '/offline.html', '/manifest.webmanifest', '/icons/icon.d79ae09e.svg', '/icons/icon-192.8abc28cb.png', '/icons/icon-512.76e12d28.png', '/icons/icon-maskable-512.174f2747.png', '/art/ledger-stamp-640.d21a9309.avif', '/art/ledger-stamp-960.d2855062.avif', '/art/ledger-stamp-640.1a534b29.webp', '/art/ledger-stamp-960.68c0987e.webp'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) =>

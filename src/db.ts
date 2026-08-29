@@ -176,7 +176,6 @@ export async function createBackup(): Promise<Backup> {
 }
 
 export async function importEvents(incoming: SetEvent[]): Promise<{ added: number; skipped: number; renamed: number }> {
-  const db = await openDatabase();
   const known = await listEvents();
   let added = 0; let skipped = 0; let renamed = 0;
   for (const original of incoming) {
@@ -200,22 +199,27 @@ function isImportedSet(event: LogEvent): event is SetEvent {
   return event.type === 'set.completed' || event.type === 'set.corrected';
 }
 
-export async function restoreBackup(backup: Backup): Promise<{ routines: number; events: number }> {
+export async function restoreBackup(backup: Backup): Promise<{ routines: number; events: number; skippedRoutines: number }> {
   if (backup.format !== 'durable-set-log-backup' || backup.version !== 1 || !Array.isArray(backup.routines) || !Array.isArray(backup.events)) {
     throw new Error('This is not a Durable Set Log backup.');
   }
   if (!backup.routines.every(validRoutine) || !backup.events.every(validEvent)) {
     throw new Error('The backup contains an invalid routine or ledger event. Nothing was restored.');
   }
-  const db = await openDatabase();
-  let routineCount = 0; let eventCount = 0;
-  for (const routine of backup.routines) { await saveRoutine(routine); routineCount += 1; }
-  for (const original of backup.events) {
-    const existing = await requestResult(db.transaction(EVENTS).objectStore(EVENTS).get(original.id) as IDBRequest<LogEvent | undefined>);
-    if (existing) continue;
-    await appendEvent(original); eventCount += 1;
+  if (new Set(backup.routines.map(({ id }) => id)).size !== backup.routines.length || new Set(backup.events.map(({ id }) => id)).size !== backup.events.length) {
+    throw new Error('The backup contains duplicate record IDs. Nothing was restored.');
   }
-  return { routines: routineCount, events: eventCount };
+  const db = await openDatabase();
+  const [knownRoutines, knownEvents] = await Promise.all([listRoutines(), listEvents()]);
+  const routineIds = new Set(knownRoutines.map(({ id }) => id));
+  const eventIds = new Set(knownEvents.map(({ id }) => id));
+  const routines = backup.routines.filter(({ id }) => !routineIds.has(id));
+  const events = backup.events.filter(({ id }) => !eventIds.has(id));
+  const tx = db.transaction([ROUTINES, EVENTS], 'readwrite');
+  for (const routine of routines) tx.objectStore(ROUTINES).add(routine);
+  for (const event of events) tx.objectStore(EVENTS).add(event);
+  await transactionDone(tx);
+  return { routines: routines.length, events: events.length, skippedRoutines: backup.routines.length - routines.length };
 }
 
 function nonEmpty(value: unknown): value is string {
@@ -226,8 +230,8 @@ function validExercise(value: unknown): value is Routine['exercises'][number] {
   if (!value || typeof value !== 'object') return false;
   const item = value as Record<string, unknown>;
   return nonEmpty(item.id) && nonEmpty(item.name) && Number.isInteger(item.targetSets) && Number(item.targetSets) > 0 &&
-    typeof item.defaultWeight === 'number' && Number.isFinite(item.defaultWeight) && item.defaultWeight >= 0 &&
-    Number.isInteger(item.defaultReps) && Number(item.defaultReps) >= 0;
+    Number(item.targetSets) <= 20 && typeof item.defaultWeight === 'number' && Number.isFinite(item.defaultWeight) && item.defaultWeight >= 0 &&
+    item.defaultWeight <= 2000 && Number.isInteger(item.defaultWeight * 2) && Number.isInteger(item.defaultReps) && Number(item.defaultReps) >= 0 && Number(item.defaultReps) <= 1000;
 }
 
 function validRoutine(value: unknown): value is Routine {
@@ -248,5 +252,5 @@ function validEvent(value: unknown): value is LogEvent {
   if (item.type !== 'set.completed' && item.type !== 'set.corrected') return false;
   return nonEmpty(item.setId) && nonEmpty(item.routineName) && nonEmpty(item.exerciseId) && nonEmpty(item.exerciseName) &&
     Number.isInteger(item.setNumber) && Number(item.setNumber) > 0 && typeof item.weight === 'number' && Number.isFinite(item.weight) && item.weight >= 0 &&
-    Number.isInteger(item.reps) && Number(item.reps) >= 0;
+    item.weight <= 2000 && Number.isInteger(item.weight * 2) && Number.isInteger(item.reps) && Number(item.reps) >= 0 && Number(item.reps) <= 1000;
 }

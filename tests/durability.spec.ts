@@ -41,7 +41,7 @@ test('correction appends history and CSV remains free', async ({ page }) => {
   await page.getByRole('button', { name: /Correction proof/ }).click();
   await page.getByRole('button', { name: /Complete set 1/ }).click();
   await expect(page.getByText('Deadlift set 1 saved on this device.')).toBeVisible();
-  await page.getByRole('button', { name: 'Ledger' }).click();
+  await page.getByRole('link', { name: 'Ledger' }).click();
   const correct = page.getByRole('button', { name: 'Correct' }).first();
   await correct.click();
   await page.getByLabel('Weight kg').fill('85');

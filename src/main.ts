@@ -17,14 +17,25 @@ const mount = document.querySelector<HTMLDivElement>('#app');
 if (!mount) throw new Error('App mount point is missing.');
 const app: HTMLDivElement = mount;
 const pageUrl = new URL(location.href);
-const isDemoMode = location.pathname === '/demo' || location.pathname === '/demo/' || pageUrl.searchParams.get('demo') === '1';
+const isDemoMode = location.pathname === '/demo' || location.pathname.startsWith('/demo/') || pageUrl.searchParams.get('demo') === '1';
+
+function viewFromPath(): View {
+  const segment = location.pathname.replace(/^\/demo\/?/, '/').split('/').filter(Boolean)[0];
+  if (segment === 'routines' || segment === 'ledger' || segment === 'more' || segment === 'workout') return segment;
+  return isDemoMode ? 'ledger' : 'workout';
+}
+
+function viewPath(view: View): string {
+  if (isDemoMode) return view === 'ledger' ? '/demo' : `/demo/${view}`;
+  return view === 'workout' ? '/' : `/${view}`;
+}
 
 const state: {
   view: View; routines: Routine[]; events: LogEvent[]; active?: ActiveWorkout;
   license: LicenseState; busy: boolean; flash?: { tone: 'success' | 'error' | 'info'; message: string };
   dbError?: string; updateWorker?: ServiceWorker; installPrompt?: BeforeInstallPromptEvent;
 } = {
-  view: isDemoMode ? 'ledger' : 'workout', routines: [], events: [], license: { unlocked: false, checking: false }, busy: false,
+  view: viewFromPath(), routines: [], events: [], license: { unlocked: false, checking: false }, busy: false,
 };
 let updateRequested = false;
 
@@ -56,15 +67,52 @@ function icon(name: 'workout' | 'routines' | 'ledger' | 'more' | 'check' | 'lock
 }
 
 function navButton(view: View, label: string, glyph: 'workout' | 'routines' | 'ledger' | 'more'): string {
-  return `<button class="nav-button${state.view === view ? ' is-active' : ''}" data-action="view" data-view="${view}" ${state.view === view ? 'aria-current="page"' : ''}>${icon(glyph)}<span>${label}</span></button>`;
+  return `<a class="nav-button${state.view === view ? ' is-active' : ''}" href="${viewPath(view)}" data-action="view" data-view="${view}" ${state.view === view ? 'aria-current="page"' : ''}>${icon(glyph)}<span>${label}</span></a>`;
 }
 
 function documentTitle(): string {
-  if (isDemoMode) return 'Demo — Durable Set Log';
+  if (isDemoMode && state.view === 'ledger') return 'Demo — Durable Set Log';
+  if (isDemoMode && state.view === 'routines') return 'Demo routines — Durable Set Log';
+  if (isDemoMode && state.view === 'more') return 'Demo data tools — Durable Set Log';
+  if (isDemoMode) return 'Demo workout — Durable Set Log';
   if (state.view === 'routines') return 'Routines — Durable Set Log';
   if (state.view === 'ledger') return 'Set ledger — Durable Set Log';
   if (state.view === 'more') return 'More — Durable Set Log';
   return 'Durable Set Log — offline workout ledger';
+}
+
+function pageDescription(): string {
+  if (state.view === 'routines') return 'Create and edit reusable strength routines stored in this browser.';
+  if (state.view === 'ledger') return isDemoMode ? 'Try a separate sample strength ledger without changing your real data.' : 'Inspect completed strength sets and append corrections without erasing history.';
+  if (state.view === 'more') return 'Back up, restore, import, export, and inspect local Durable Set Log data.';
+  return isDemoMode ? 'Try a sample workout in a separate browser ledger.' : 'Log strength sets locally and keep working when the signal drops.';
+}
+
+function updatePageMetadata(): void {
+  const canonicalUrl = `https://durable-set-log.sociobot.in${viewPath(state.view)}`;
+  document.title = documentTitle();
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', canonicalUrl);
+  document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.setAttribute('content', canonicalUrl);
+  document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute('content', documentTitle());
+  document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', pageDescription());
+  document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute('content', pageDescription());
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute('content', documentTitle());
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute('content', pageDescription());
+}
+
+function setViewLocation(view: View, mode: 'push' | 'replace' = 'push'): void {
+  const path = viewPath(view);
+  if (`${location.pathname}${location.search}` === path) return;
+  history[mode === 'push' ? 'pushState' : 'replaceState']({ view }, '', path);
+}
+
+function showView(view: View, historyMode: 'push' | 'replace' | 'none' = 'push'): void {
+  state.view = view;
+  state.flash = undefined;
+  if (historyMode !== 'none') setViewLocation(view, historyMode);
+  render();
+  document.querySelector('#main')?.scrollIntoView();
+  focusCurrentHeading();
 }
 
 function focusCurrentHeading(): void {
@@ -75,11 +123,11 @@ function focusCurrentHeading(): void {
 }
 
 function render(): void {
-  document.title = documentTitle();
+  updatePageMetadata();
   const online = navigator.onLine;
   app.innerHTML = `
     <header class="site-header">
-      <a class="brand" href="#workout" data-action="view" data-view="workout" aria-label="Durable Set Log, workout">
+      <a class="brand" href="${viewPath('workout')}" data-action="view" data-view="workout" aria-label="Durable Set Log, workout">
         <span class="brand-mark" aria-hidden="true">✓</span>
         <span class="brand-title">Durable Set Log</span>
       </a>
@@ -92,14 +140,14 @@ function render(): void {
       ${navButton('workout', 'Workout', 'workout')}
       ${navButton('routines', 'Routines', 'routines')}
       ${navButton('ledger', 'Ledger', 'ledger')}
-      ${navButton('more', 'More', 'more')}
+      ${navButton('more', 'Data &amp; backup', 'more')}
     </nav>
     <main id="main" tabindex="-1">
       <p class="sr-only" aria-live="polite">${escapeHtml(documentTitle())}</p>
       ${state.flash ? `<div class="flash flash-${state.flash.tone}" role="status">${escapeHtml(state.flash.message)}<button data-action="dismiss-flash" aria-label="Dismiss message">×</button></div>` : ''}
       ${state.dbError ? errorView() : currentView()}
     </main>
-    <footer class="app-footer"><span>Durable Set Log keeps strength sets on this device.</span><span><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · Built by Param Factory · v1.0.1</span></footer>
+    <footer class="app-footer"><span>Durable Set Log keeps strength sets on this device.</span><span class="footer-links"><a href="/privacy/">Privacy</a><span aria-hidden="true">·</span><a href="/terms/">Terms</a><span aria-hidden="true">·</span><span>Built by Param Factory · v1.0.2</span></span></footer>
     <dialog id="routine-dialog" class="ink-dialog" aria-labelledby="routine-dialog-title"></dialog>
     <dialog id="correction-dialog" class="ink-dialog" aria-labelledby="correction-dialog-title"></dialog>
     ${state.updateWorker ? `<aside class="update-toast" role="status"><div><strong>Fresh ink is ready.</strong><span>Update without losing your device ledger.</span></div><button class="button button-small" data-action="apply-update">Update</button></aside>` : ''}
@@ -126,7 +174,7 @@ function workoutView(): string {
         <p>For strength trainees who need each completed set to survive a reload or lost signal.</p>
         ${state.routines.length ? `<div class="start-list" aria-label="Start a routine">${state.routines.map((routine) => `<button class="start-routine" data-action="start" data-id="${escapeHtml(routine.id)}"><span><strong>${escapeHtml(routine.name)}</strong><small>${routine.exercises.length} exercise${routine.exercises.length === 1 ? '' : 's'}</small></span><span aria-hidden="true">Start →</span></button>`).join('')}</div>` : `<div class="hero-actions"><a class="button button-primary" href="/demo">Try it with sample data</a><button class="button" data-action="new-routine">Make your first routine</button></div><p class="action-note">The sample opens a separate ledger and is never saved with your data.</p>`}
       </div>
-      <figure class="hero-art"><picture><source type="image/avif" srcset="/art/ledger-stamp-640.avif 640w, /art/ledger-stamp-960.avif 960w" sizes="(max-width: 760px) 100vw, 48vw"><img src="/art/ledger-stamp-640.webp" srcset="/art/ledger-stamp-640.webp 640w, /art/ledger-stamp-960.webp 960w" sizes="(max-width: 760px) 100vw, 48vw" width="960" height="640" alt="Risograph collage of a hand stamping a workout ledger beside a weight plate" decoding="async" fetchpriority="high"></picture><figcaption>Stamped in, not synced away.</figcaption></figure>
+      <figure class="hero-art"><picture><source type="image/avif" srcset="/art/ledger-stamp-640.d21a9309.avif 640w, /art/ledger-stamp-960.d2855062.avif 960w" sizes="(max-width: 760px) 100vw, 48vw"><img src="/art/ledger-stamp-640.1a534b29.webp" srcset="/art/ledger-stamp-640.1a534b29.webp 640w, /art/ledger-stamp-960.68c0987e.webp 960w" sizes="(max-width: 760px) 100vw, 48vw" width="960" height="640" alt="Risograph collage of a hand stamping a workout ledger beside a weight plate" decoding="async" fetchpriority="high"></picture><figcaption>Stamped in, not synced away.</figcaption></figure>
       <div class="proof-strip"><span>${icon('check')} Confirms after device write</span><span>${icon('check')} Works offline after first visit</span><span>${icon('check')} Export CSV any time</span></div>
     </section>`;
   }
@@ -246,8 +294,7 @@ async function refreshData(): Promise<void> {
 async function handleAction(button: HTMLElement): Promise<void> {
   const action = button.dataset.action;
   if (action === 'view' || action === 'go-workout') {
-    state.view = action === 'go-workout' ? 'workout' : (button.dataset.view as View);
-    state.flash = undefined; render(); document.querySelector('#main')?.scrollIntoView(); focusCurrentHeading(); return;
+    showView(action === 'go-workout' ? 'workout' : (button.dataset.view as View)); return;
   }
   if (action === 'dismiss-flash') { state.flash = undefined; render(); return; }
   if (action === 'close-dialog') { button.closest('dialog')?.close(); return; }
@@ -257,6 +304,7 @@ async function handleAction(button: HTMLElement): Promise<void> {
     await seedDemoData();
     await refreshData();
     state.view = 'ledger';
+    setViewLocation('ledger', 'replace');
     setFlash('Sample data reset.', 'info');
     return;
   }
@@ -284,7 +332,7 @@ async function handleAction(button: HTMLElement): Promise<void> {
     if (state.active) { setFlash('Finish the current workout before starting another.', 'error'); return; }
     const routine = state.routines.find((item) => item.id === button.dataset.id); if (!routine) return;
     state.busy = true; render();
-    try { state.active = await startWorkout(routine); state.events = await listEvents(); state.view = 'workout'; state.flash = { tone: 'success', message: `${routine.name} started and saved on this device.` }; }
+    try { state.active = await startWorkout(routine); state.events = await listEvents(); state.view = 'workout'; setViewLocation('workout'); state.flash = { tone: 'success', message: `${routine.name} started and saved on this device.` }; }
     catch (error) { state.flash = { tone: 'error', message: error instanceof Error ? error.message : 'The workout could not start.' }; }
     finally { state.busy = false; render(); } return;
   }
@@ -309,8 +357,12 @@ async function completeSet(exerciseId: string): Promise<void> {
   const active = state.active; const exercise = active?.exercises.find((item) => item.id === exerciseId);
   const sheet = document.querySelector<HTMLElement>(`[data-exercise="${CSS.escape(exerciseId)}"]`);
   if (!active || !exercise || !sheet || state.busy) return;
-  const weight = Number(sheet.querySelector<HTMLInputElement>('[data-field="weight"]')?.value);
-  const reps = Number(sheet.querySelector<HTMLInputElement>('[data-field="reps"]')?.value);
+  const weightInput = sheet.querySelector<HTMLInputElement>('[data-field="weight"]');
+  const repsInput = sheet.querySelector<HTMLInputElement>('[data-field="reps"]');
+  const invalidInput = [weightInput, repsInput].find((input) => !input?.checkValidity());
+  if (invalidInput) { invalidInput.reportValidity(); invalidInput.focus(); return; }
+  const weight = Number(weightInput?.value);
+  const reps = Number(repsInput?.value);
   if (!Number.isFinite(weight) || weight < 0 || !Number.isInteger(reps) || reps < 0) { setFlash('Enter a weight of zero or more and a whole number of reps.', 'error'); return; }
   const done = currentSets(state.events).filter((event) => event.sessionId === active.sessionId && event.exerciseId === exerciseId);
   const event: SetEvent = { id: localId('event'), type: 'set.completed', at: isoNow(), sessionId: active.sessionId, setId: localId('set'), routineName: active.routineName, exerciseId, exerciseName: exercise.name, setNumber: done.length + 1, weight, reps };
@@ -362,7 +414,7 @@ async function handleImport(input: HTMLInputElement): Promise<void> {
       setFlash(`Import complete: ${result.added} added, ${result.skipped} already present${result.renamed ? `, ${result.renamed} ID collision${result.renamed === 1 ? '' : 's'} safely renamed` : ''}.`);
     } else {
       const backup = JSON.parse(await file.text()) as Backup; const result = await restoreBackup(backup); await refreshData();
-      setFlash(`Restore complete: ${result.routines} routine${result.routines === 1 ? '' : 's'} and ${result.events} new event${result.events === 1 ? '' : 's'} merged.`);
+      setFlash(`Restore complete: ${result.routines} routine${result.routines === 1 ? '' : 's'} and ${result.events} event${result.events === 1 ? '' : 's'} added; ${result.skippedRoutines} existing routine${result.skippedRoutines === 1 ? '' : 's'} kept.`);
     }
   } catch (error) { setFlash(error instanceof Error ? error.message : 'The file could not be imported.', 'error'); }
 }
@@ -378,6 +430,7 @@ app.addEventListener('submit', (event) => {
 });
 app.addEventListener('change', (event) => { const input = event.target as HTMLInputElement; if (input.dataset.import) void handleImport(input); });
 window.addEventListener('online', render); window.addEventListener('offline', render);
+window.addEventListener('popstate', () => showView(viewFromPath(), 'none'));
 window.addEventListener('beforeinstallprompt', (event) => { event.preventDefault(); state.installPrompt = event as BeforeInstallPromptEvent; render(); });
 
 async function registerServiceWorker(): Promise<void> {

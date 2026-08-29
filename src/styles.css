@@ -51,7 +51,7 @@ a:hover { text-decoration-thickness: 3px; }
   min-height: 76px; padding: 12px max(18px, env(safe-area-inset-left)); border-bottom: var(--border);
   background: color-mix(in srgb, var(--paper) 94%, transparent); backdrop-filter: blur(8px);
 }
-.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
+.brand { display: flex; min-height: 44px; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
 .brand-mark {
   display: grid; width: 42px; height: 42px; place-items: center; border: 3px solid var(--ink);
   background: var(--yellow); box-shadow: 3px 3px 0 var(--coral); font-weight: 950;
@@ -62,6 +62,8 @@ a:hover { text-decoration-thickness: 3px; }
 
 main { width: min(1180px, 100%); min-height: calc(100vh - 160px); margin: 0 auto; padding: 32px 24px 120px; }
 .app-footer { display: flex; justify-content: space-between; gap: 16px; padding: 20px max(24px, calc((100% - 1180px) / 2)); border-top: 3px solid var(--ink); color: var(--muted); font-size: 13px; }
+.footer-links { display: flex; align-items: center; gap: 8px; }
+.footer-links a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; }
 h1, h2, h3 { margin: 0; font-family: "Arial Black", "Arial Narrow", sans-serif; letter-spacing: -.035em; line-height: 1.08; }
 h1, h2 { max-width: 18ch; font-size: clamp(32px, 7vw, 56px); text-wrap: balance; }
 h3 { font-size: 23px; }
@@ -92,7 +94,7 @@ button:disabled, .button:disabled { cursor: not-allowed; filter: grayscale(.8); 
   padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   border-top: var(--border); background: var(--sheet);
 }
-.nav-button { display: flex; min-height: 58px; align-items: center; justify-content: center; gap: 5px; border: 0; background: transparent; color: var(--muted); font-size: 12px; font-weight: 800; cursor: pointer; }
+.nav-button { display: flex; min-height: 58px; align-items: center; justify-content: center; gap: 5px; border: 0; background: transparent; color: var(--muted); font-size: 12px; font-weight: 800; text-decoration: none; cursor: pointer; }
 .nav-button .icon { width: 22px; }
 .nav-button.is-active { background: var(--yellow); color: var(--ink); box-shadow: inset 0 -4px 0 var(--violet); }
 
@@ -181,6 +183,7 @@ fieldset { margin: 20px 0; padding: 0; border: 0; } legend { margin-bottom: 8px;
   .site-header { min-height: 66px; }.brand-mark { width: 36px; height: 36px; }.status-stamp { max-width: 120px; text-align: center; }
   main { padding: 24px 16px 112px; }.workout-heading, .section-heading { align-items: start; flex-direction: column; }.section-heading .button { width: 100%; }
   .app-footer { flex-direction: column; padding: 18px 16px 102px; }
+  .footer-links { flex-wrap: wrap; }
   .exercise-sheet { padding: 16px; box-shadow: 5px 5px 0 var(--violet-deep); }.exercise-title { flex-direction: column; }.set-dots { justify-content: flex-start; }
   .nav-button { flex-direction: column; }.ledger-row { grid-template-columns: 1fr auto; }.ledger-date { grid-column: 1 / -1; grid-template-columns: 1fr auto; }.ledger-row .text-button { grid-column: 2; grid-row: 2; }
   .demo-banner { align-items: flex-start; flex-wrap: wrap; justify-content: flex-start; }.demo-banner span { flex-basis: 100%; }.demo-banner div { width: 100%; justify-content: space-between; }

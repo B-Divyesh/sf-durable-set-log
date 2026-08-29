@@ -1,4 +1,11 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Download } from '@playwright/test';
+
+async function downloadText(download: Download): Promise<string> {
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
+  return Buffer.concat(chunks).toString('utf8');
+}
 
 test('@claim:offline-reload Works offline after the first visit', async ({ page, context }) => {
   await page.goto('/demo');
@@ -14,14 +21,14 @@ test('@claim:offline-reload Works offline after the first visit', async ({ page,
 
 test('@claim:confirmed-device-write A confirmed set survives a reload', async ({ page }) => {
   await page.goto('/demo');
-  await page.getByRole('button', { name: 'Workout' }).click();
+  await page.getByRole('link', { name: 'Workout', exact: true }).click();
   await page.getByRole('button', { name: /Tuesday strength/ }).click();
   await page.getByLabel('Back squat weight in kilograms').fill('85');
   await page.getByLabel('Back squat repetitions').fill('5');
   await page.locator('[data-exercise="demo-back-squat"] [data-action="complete"]').click();
   await expect(page.getByText('Back squat set 1 saved on this device.')).toBeVisible();
   await page.reload();
-  await expect(page.getByText('Set 1 · 85 kg × 5', { exact: true })).toBeVisible();
+  await expect(page.getByText(/Last saved: 85 kg × 5/)).toBeVisible();
 });
 
 test('@claim:csv-export Exports the sample ledger as CSV', async ({ page }) => {
@@ -39,7 +46,7 @@ test('@claim:local-privacy The demo workout flow makes no third-party requests',
   const requests: string[] = [];
   page.on('request', (request) => requests.push(request.url()));
   await page.goto('/demo');
-  await page.getByRole('button', { name: 'Workout' }).click();
+  await page.getByRole('link', { name: 'Workout', exact: true }).click();
   await page.getByRole('button', { name: /Tuesday strength/ }).click();
   await page.locator('[data-exercise="demo-back-squat"] [data-action="complete"]').click();
   await expect(page.getByText(/Back squat set 1 saved on this device/)).toBeVisible();
@@ -48,7 +55,7 @@ test('@claim:local-privacy The demo workout flow makes no third-party requests',
 
 test('@claim:demo-isolated Demo changes never appear in the real ledger', async ({ page }) => {
   await page.goto('/?demo=1');
-  await page.getByRole('button', { name: 'Routines' }).click();
+  await page.getByRole('link', { name: 'Routines' }).click();
   await page.getByRole('button', { name: 'New routine' }).click();
   await page.getByLabel('Routine name').fill('Demo-only routine');
   await page.getByLabel('Exercise name').fill('Demo lift');
@@ -57,4 +64,112 @@ test('@claim:demo-isolated Demo changes never appear in the real ledger', async 
   await page.goto('/');
   await expect(page.getByText('Demo-only routine', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
+});
+
+test('@claim:append-only-corrections Corrections append a row and retain the earlier value', async ({ page }) => {
+  await page.goto('/demo');
+  await expect(page.locator('.ledger-row')).toHaveCount(3);
+  const rowsBefore = await page.locator('.ledger-row').count();
+  await page.getByRole('button', { name: 'Correct' }).first().click();
+  const original = await page.getByRole('dialog').getByText(/entry remains in history/).textContent();
+  await page.getByLabel('Weight kg').fill('57.5');
+  await page.getByRole('button', { name: 'Save correction' }).click();
+  await expect(page.getByText('Correction appended. The original remains visible.')).toBeVisible();
+  await expect(page.locator('.ledger-row')).toHaveCount(rowsBefore + 1);
+  await expect(page.getByText('Correction', { exact: true })).toBeVisible();
+  await expect(page.getByText('Corrected', { exact: true })).toBeVisible();
+  expect(original).toContain('55 kg × 8');
+  await expect(page.getByText('Set 1 · 57.5 kg × 8', { exact: true })).toBeVisible();
+  await expect(page.getByText('Set 1 · 55 kg × 8', { exact: true })).toBeVisible();
+});
+
+test('@claim:json-backup-restore JSON backup restores routines without overwriting local edits', async ({ page }) => {
+  await page.goto('/demo/more');
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Back up JSON' }).click();
+  const text = await downloadText(await downloadPromise);
+  const backup = JSON.parse(text) as { routines: Array<{ name: string }>; events: unknown[] };
+  expect(backup.routines.map(({ name }) => name)).toContain('Tuesday strength');
+  expect(backup.events.length).toBeGreaterThan(0);
+
+  page.on('dialog', (dialog) => dialog.accept());
+  await page.getByRole('link', { name: 'Routines' }).click();
+  await page.getByRole('button', { name: 'Delete' }).click();
+  await page.getByRole('link', { name: 'Data & backup' }).click();
+  await page.locator('#json-import').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(text) });
+  await expect(page.getByText(/Restore complete: 1 routine and 0 events added/)).toBeVisible();
+
+  await page.getByRole('link', { name: 'Routines' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByLabel('Routine name').fill('Local newer edit');
+  await page.getByRole('button', { name: 'Save routine' }).click();
+  await page.getByRole('link', { name: 'Data & backup' }).click();
+  await page.locator('#json-import').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(text) });
+  await expect(page.getByText(/0 routines and 0 events added; 1 existing routine kept/)).toBeVisible();
+  await page.getByRole('link', { name: 'Routines' }).click();
+  await expect(page.getByRole('heading', { name: 'Local newer edit' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Tuesday strength' })).toHaveCount(0);
+});
+
+test('@claim:csv-collision-safe CSV import keeps both records when an event ID collides', async ({ page }) => {
+  await page.goto('/demo/more');
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export CSV' }).click();
+  const original = await downloadText(await downloadPromise);
+  const lines = original.trimEnd().split('\n');
+  const changed = lines.map((line) => {
+    if (!line.startsWith('demo-set-bench-1,')) return line;
+    const fields = line.split(',');
+    fields[9] = '57.5';
+    return fields.join(',');
+  }).join('\n') + '\n';
+  await page.locator('#csv-import').setInputFiles({ name: 'collision.csv', mimeType: 'text/csv', buffer: Buffer.from(changed) });
+  await expect(page.getByText(/1 added, 2 already present, 1 ID collision safely renamed/)).toBeVisible();
+  await page.getByRole('link', { name: 'Ledger' }).click();
+  await expect(page.getByText('Set 1 · 55 kg × 8', { exact: true })).toBeVisible();
+  await expect(page.getByText('Set 1 · 57.5 kg × 8', { exact: true })).toBeVisible();
+});
+
+test('@claim:atomic-workout-write Active workout state and boundary events commit together', async ({ page }) => {
+  await page.goto('/demo/workout');
+  await page.getByRole('button', { name: /Tuesday strength/ }).click();
+  const started = await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('durable-set-log:demo');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const transaction = db.transaction(['meta', 'events']);
+    const metaRequest = transaction.objectStore('meta').get('activeWorkout');
+    const eventsRequest = transaction.objectStore('events').getAll();
+    const [meta, events] = await Promise.all([
+      new Promise<any>((resolve) => { metaRequest.onsuccess = () => resolve(metaRequest.result); }),
+      new Promise<any[]>((resolve) => { eventsRequest.onsuccess = () => resolve(eventsRequest.result); }),
+    ]);
+    db.close();
+    return { active: meta?.value, starts: events.filter((event) => event.type === 'workout.started' && event.sessionId === meta?.value?.sessionId).length };
+  });
+  expect(started.active?.routineName).toBe('Tuesday strength');
+  expect(started.starts).toBe(1);
+
+  page.on('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Finish workout' }).click();
+  const finished = await page.evaluate(async (sessionId) => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('durable-set-log:demo');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const transaction = db.transaction(['meta', 'events']);
+    const metaRequest = transaction.objectStore('meta').get('activeWorkout');
+    const eventsRequest = transaction.objectStore('events').getAll();
+    const [meta, events] = await Promise.all([
+      new Promise<any>((resolve) => { metaRequest.onsuccess = () => resolve(metaRequest.result); }),
+      new Promise<any[]>((resolve) => { eventsRequest.onsuccess = () => resolve(eventsRequest.result); }),
+    ]);
+    db.close();
+    return { active: meta?.value, finishes: events.filter((event) => event.type === 'workout.finished' && event.sessionId === sessionId).length };
+  }, started.active.sessionId);
+  expect(finished.active).toBeUndefined();
+  expect(finished.finishes).toBe(1);
 });

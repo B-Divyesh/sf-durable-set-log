@@ -1,65 +1,103 @@
-# Durable Set Log — independent verification handoff
+# Durable Set Log — repair handoff
 
-Status: **FAIL — do not release**
+Work order: `durable-set-log-repair-2`
 
-Work order: `durable-set-log-verify-2`
+Verifier report repaired: `e1fc1d0d421163c03e842dc9612660de5d007282`
 
-Candidate: `cda721589aaae840c6fa8d866f9a3a0daf9608e4`
-
-Live URL: <https://durable-set-log.sociobot.in>
+Candidate repaired: `cda721589aaae840c6fa8d866f9a3a0daf9608e4`
 
 Date: 2026-08-29
 
-The complete evidence is in [verification-2.md](verification-2.md).
+Artifact/deployment class: static `pwa-offline` (`dist/`)
 
-## Result
+## Release-blocking findings repaired
 
-All five declared claim tests, 7 unit/hosting tests, 18 full Playwright tests,
-4 accessibility tests, strict TypeScript, and the production build pass. The
-cold first screen and one-click isolated demo pass. The live root, demo, and
-service worker byte-match the candidate build. Offline reload, service-worker
-update, privacy request logging, headers, rate limiting, keyboard use, mobile
-layout, and Lighthouse were independently exercised.
+- JSON restore no longer calls `put()` for routines. It validates duplicate
+  IDs, compares the complete local ID sets, and performs one `add()`-only
+  transaction across routines and events. A colliding local routine is kept;
+  the restore receipt states how many existing routines were preserved.
+- `.factory/claims.json` now lists all nine published claims. New exact claim
+  tests cover correction history, JSON backup/restore and non-overwrite,
+  collision-safe CSV import, and atomic workout boundary state.
+- Active-workout completion now calls the actual inputs' `checkValidity()` and
+  `reportValidity()` before a write. Over-max and off-step values cannot reach
+  IndexedDB. CSV and JSON ingestion enforce the same numeric limits.
+- Header and footer links now have at least 44×44 CSS px targets. The 390 px
+  regression measures the three targets named by the verifier.
+- Workout, Routines, Ledger, and data views now have concrete URLs, pushState,
+  popstate restoration, deep-link documents, route titles, heading focus, and
+  route announcements. Demo views use the same system under `/demo/*` while
+  retaining the separate demo database.
+- Root, app, demo, privacy, and terms routes now have canonical, Open Graph,
+  and Twitter metadata. The new 1200×630 social image is derived from the
+  product's reviewed original artwork. The sitemap includes all public app and
+  demo routes.
+- Art, icons, the social image, and legal CSS now use content fingerprints.
+  Static Web Apps policy gives those paths one-year immutable caching, keeps
+  `sw.js` revalidating, and explicitly serves AVIF as `image/avif`.
+- The service-worker shell advanced from v5 to v6 and precaches the new route
+  and asset names. Its activation regression proves the v5 cache is removed
+  while an IndexedDB routine survives.
 
-Release still fails for two decisive reasons:
+## Exact regression mapping
 
-1. `.factory/claims.json` omits published correction/import/JSON recovery
-   claims, which violates the mandatory claims contract.
-2. The omitted promise “Existing records are never overwritten” is false for
-   JSON routines. Restoring an older backup silently replaced a newer local
-   routine while reporting a merge.
+| Verifier finding | Regression evidence |
+| --- | --- |
+| Routine overwritten by older JSON | `@claim:json-backup-restore` exports, deletes/restores, edits locally, restores the older file, and asserts the local edit remains. |
+| Missing correction claim | `@claim:append-only-corrections` asserts one added row and both earlier/replacement values. |
+| Missing collision-safe import claim | `@claim:csv-collision-safe` imports a changed same-ID row and asserts both records remain. |
+| Missing atomic-write claim | `@claim:atomic-workout-write` reads active metadata and matching boundary events in IndexedDB transactions. |
+| Over-limit active values saved | `active workout rejects values outside the displayed constraints` tests `2000.5 kg` and `1001 reps` independently and asserts no set is written. |
+| Three targets below 44 px | `mobile header and footer targets are at least 44 CSS pixels` measures brand, Privacy, and Terms at 390 px. |
+| No history/deep links | `app views have deep links and browser history` exercises direct loads, pushState, Back, heading focus, and demo routes. |
+| Missing route/share metadata | `share and legal route metadata is complete` checks demo/legal canonicals, both image tags, and sitemap entries. |
+| Weak cache policy / wrong AVIF MIME | Hosting unit tests assert hashed references, immutable path policy, v6 update behavior, and `image/avif`. |
 
-Additional medium findings: active set logging persists over-max values that
-the inputs report invalid; three mobile link targets are under 44 px high;
-in-app views have no History API/deep-link behavior; and required route/share
-metadata is incomplete. Static assets also have 30-second cache headers and
-AVIF is served as `application/octet-stream`.
+## Clean verification evidence
 
-## Verification summary
+The final matrix ran after `npm ci --include=dev` installed 148 packages and
+reported 0 vulnerabilities.
+
+| Check | Result |
+| --- | --- |
+| Type and lint | `npm run typecheck` and `npm run lint` passed. ESLint is now an explicit release gate. |
+| Unit/policy | `npm test` passed 9/9 Vitest tests. |
+| Production build | `npm run build` passed and emitted concrete root/app/demo/legal documents in `dist/`. |
+| Claims | `npm run test:claims` passed 18/18: all nine exact `@claim:` tests in desktop and 390 px Chromium. |
+| Browser | `npm run test:e2e` passed 39 checks; the one skip is the desktop half of the mobile-only target-size assertion. Both projects exercised every applicable flow. |
+| Accessibility | `npm run test:a11y` passed 8/8. Axe found no serious/critical issue on root, demo, privacy, terms, or 404. Native dialog focus trap, Escape close, trigger restoration, skip link, and heading focus passed. |
+| Offline/update | The offline claim passed in both projects; the durability suite retained a confirmed set through 100 offline reloads in each project. The v5→v6 cache migration retained IndexedDB data. |
+| Privacy | The full demo workout request log remained same-origin. No analytics, CDN, cloud workout store, or cookie was introduced. |
+| Browser smoke | Factory `verify-url.sh` passed desktop and 390 px screenshots: title, `lang=en`, one h1, main, all image alts, labelled buttons, and zero console errors; measured local load was 539 ms. |
+| Performance | Mobile Lighthouse: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 0.8 s, LCP 1.8 s, TBT 40 ms, CLS 0. |
+| Budgets | Production document 58,626 B raw / 17,582 B gzip; inline JS 40,109 B raw / 12,854 B gzip; inline CSS 16,166 B raw / 4,313 B gzip; mobile hero AVIF 34,400 B. |
+
+Playwright remains pinned to 1.58.2. This PWA has no backend, sign-in, package
+consumer, or AI runtime, so those checks are not applicable. The optional
+license flow remains limited to the approved Sociobot billing endpoint.
+
+## Run and deploy
 
 ```sh
 npm ci --include=dev
-npm test                 # 7/7 passed
-npm run build            # passed; dist/ produced
-npm run test:e2e         # 18/18 passed
-npm run test:a11y        # 4/4 passed
-# Every exact command in .factory/claims.json passed, 2 projects each.
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:claims
+npm run test:e2e
+npm run test:a11y
 ```
 
-Live SHA-256 identity:
+Deploy `dist/` with:
 
-- root/demo HTML:
-  `fc4e47c6b810825dff690c1a4dd1c9c36b4e83966a004c469179cd625837f47d`
-- service worker:
-  `8316c24246de087673df8ff306dec4331b5033ab42098e66703ce0e4049b311b`
+```sh
+/opt/fleet/lib/deploy-static.sh durable-set-log dist
+```
 
-Observed license API allowance: 30 sequential requests; request 31 returned
-`429` with `Retry-After: 4`. Three live mobile Lighthouse runs scored
-89/99/100 performance (median 99) and 100 accessibility/best-practices/SEO.
+## Known limits
 
-## Next steps
-
-Fix JSON routine conflict handling first, then add one exact demo claim test for
-every published correction/import/backup promise. Enforce active-input max/step
-validity, fix touch targets/history/metadata/cache MIME findings, and rerun the
-entire independent matrix before release.
+- Real records remain local to one browser profile. Clearing site data can
+  remove them; CSV and JSON are the portable recovery paths.
+- There is intentionally no account, cloud sync, medical guidance, or program
+  prescription. No release-blocking gap is known.

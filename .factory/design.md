@@ -95,6 +95,9 @@ then cropped and optimized to responsive AVIF/WebP plus PNG source. The source
 PNG and JSON sidecar live in `assets/src/`; shipped derivatives live in `public/`.
 Generated imagery is original to this product. Model/deployment: Azure OpenAI
 `factory-image` via `/opt/fleet/lib/gen-image.sh`; generation date 2026-08-28.
+The 1200×630 social preview is a center crop of that same reviewed source,
+created locally with ImageMagick on 2026-08-29; no new generated content was
+introduced.
 
 All interface icons and the app mark are original inline/SVG geometric drawings
 authored for this repository and released under the project MIT license.

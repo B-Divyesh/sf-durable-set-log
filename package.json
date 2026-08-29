@@ -1,11 +1,13 @@
 {
   "name": "durable-set-log",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "build": "npm run typecheck && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:e2e": "playwright test",
@@ -14,10 +16,13 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.10.2",
+    "@eslint/js": "10.0.1",
     "@playwright/test": "1.58.2",
     "@types/node": "^22.15.3",
+    "eslint": "10.9.1",
     "playwright-core": "1.58.2",
     "typescript": "5.9.2",
+    "typescript-eslint": "8.68.0",
     "vite": "7.3.6",
     "vite-plugin-singlefile": "2.3.3",
     "vitest": "3.2.7"

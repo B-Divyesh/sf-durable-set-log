@@ -6,10 +6,14 @@
     "X-Content-Type-Options": "nosniff"
   },
   "routes": [
-    { "route": "/sw.js", "headers": { "Cache-Control": "public, must-revalidate, max-age=30" } }
+    { "route": "/sw.js", "headers": { "Cache-Control": "no-cache, max-age=0" } },
+    { "route": "/art/*", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } },
+    { "route": "/icons/*", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } },
+    { "route": "/legal.*.css", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } }
   ],
   "mimeTypes": {
-    ".webmanifest": "application/manifest+json"
+    ".webmanifest": "application/manifest+json",
+    ".avif": "image/avif"
   },
   "responseOverrides": {
     "404": { "rewrite": "/404.html", "statusCode": 404 }

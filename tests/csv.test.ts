@@ -24,6 +24,12 @@ describe('CSV ownership format', () => {
     const csv = eventsToCsv([original]).replace('42.5', '-1');
     expect(() => csvToSetEvents(csv)).toThrow('Weight must be zero or greater');
   });
+
+  it('enforces the same set limits on imported rows', () => {
+    expect(() => csvToSetEvents(eventsToCsv([{ ...original, weight: 2000.5 }]))).toThrow('Weight must be 2000 or less');
+    expect(() => csvToSetEvents(eventsToCsv([{ ...original, reps: 1001 }]))).toThrow('Reps must be 1000 or less');
+    expect(() => csvToSetEvents(eventsToCsv([{ ...original, reps: 1.5 }]))).toThrow('Reps must be a whole number');
+  });
 });
 
 describe('append-only corrections', () => {

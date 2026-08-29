@@ -42,9 +42,12 @@ export function parseCsv(text: string): string[][] {
   return rows;
 }
 
-function finiteNumber(value: string | undefined, label: string): number {
+function finiteNumber(value: string | undefined, label: string, options: { max?: number; integer?: boolean; step?: number } = {}): number {
   const result = Number(value);
   if (!Number.isFinite(result) || result < 0) throw new Error(`${label} must be zero or greater.`);
+  if (options.max !== undefined && result > options.max) throw new Error(`${label} must be ${options.max} or less.`);
+  if (options.integer && !Number.isInteger(result)) throw new Error(`${label} must be a whole number.`);
+  if (options.step !== undefined && !Number.isInteger(result / options.step)) throw new Error(`${label} must use ${options.step} increments.`);
   return result;
 }
 
@@ -71,9 +74,9 @@ export function csvToSetEvents(text: string): SetEvent[] {
       routineName: value(row, 'routine_name') || 'Imported workout',
       exerciseId: value(row, 'exercise_id') || `imported_${setId}`,
       exerciseName,
-      setNumber: finiteNumber(value(row, 'set_number') || '1', 'Set number'),
-      weight: finiteNumber(value(row, 'weight_kg'), 'Weight'),
-      reps: finiteNumber(value(row, 'reps'), 'Reps'),
+      setNumber: finiteNumber(value(row, 'set_number') || '1', 'Set number', { integer: true }),
+      weight: finiteNumber(value(row, 'weight_kg'), 'Weight', { max: 2000, step: 0.5 }),
+      reps: finiteNumber(value(row, 'reps'), 'Reps', { max: 1000, integer: true }),
       replacesEventId: value(row, 'replaces_event_id') || undefined,
       sourceEventId: value(row, 'source_event_id') || undefined,
       importedAt: value(row, 'imported_at') || undefined,
