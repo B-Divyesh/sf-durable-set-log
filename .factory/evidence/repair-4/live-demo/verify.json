@@ -1,0 +1,14 @@
+{
+  "url": "https://durable-set-log.sociobot.in/demo",
+  "loadMs": 824,
+  "errors": [],
+  "a11y": {
+    "title": "Demo — Durable Set Log",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 676
+  }
+}
