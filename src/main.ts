@@ -1,13 +1,13 @@
 import './styles.css';
 import {
-  appendEvent, createBackup, finishWorkout, getActiveWorkout, importEvents,
-  listEvents, listRoutines, removeRoutine, restoreBackup, saveRoutine, startWorkout,
+  appendEvent, clearStoredData, createBackup, finishWorkout, getActiveWorkout, importEvents,
+  listEvents, listRoutines, removeRoutine, restoreBackup, saveRoutine, seedDemoData, startWorkout, useStorageNamespace,
   type Backup,
 } from './db';
 import { csvToSetEvents, eventsToCsv } from './csv';
 import { isoNow, localId } from './id';
 import { correctedEventIds, currentSets } from './ledger';
-import { cachedLicenseState, captureReturnedLicense, CHECKOUT_URL, storeLicense, verifyLicense, type LicenseState } from './license';
+import { cachedLicenseState, captureReturnedLicense, CHECKOUT_URL, storeLicense, useLicenseNamespace, verifyLicense, type LicenseState } from './license';
 import type { ActiveWorkout, Exercise, LogEvent, Routine, SetEvent } from './types';
 import { isSetEvent } from './types';
 
@@ -16,13 +16,15 @@ type View = 'workout' | 'routines' | 'ledger' | 'more';
 const mount = document.querySelector<HTMLDivElement>('#app');
 if (!mount) throw new Error('App mount point is missing.');
 const app: HTMLDivElement = mount;
+const pageUrl = new URL(location.href);
+const isDemoMode = location.pathname === '/demo' || pageUrl.searchParams.get('demo') === '1';
 
 const state: {
   view: View; routines: Routine[]; events: LogEvent[]; active?: ActiveWorkout;
   license: LicenseState; busy: boolean; flash?: { tone: 'success' | 'error' | 'info'; message: string };
   dbError?: string; updateWorker?: ServiceWorker; installPrompt?: BeforeInstallPromptEvent;
 } = {
-  view: 'workout', routines: [], events: [], license: { unlocked: false, checking: false }, busy: false,
+  view: isDemoMode ? 'ledger' : 'workout', routines: [], events: [], license: { unlocked: false, checking: false }, busy: false,
 };
 let updateRequested = false;
 
@@ -57,18 +59,35 @@ function navButton(view: View, label: string, glyph: 'workout' | 'routines' | 'l
   return `<button class="nav-button${state.view === view ? ' is-active' : ''}" data-action="view" data-view="${view}" ${state.view === view ? 'aria-current="page"' : ''}>${icon(glyph)}<span>${label}</span></button>`;
 }
 
+function documentTitle(): string {
+  if (isDemoMode) return 'Demo — Durable Set Log';
+  if (state.view === 'routines') return 'Routines — Durable Set Log';
+  if (state.view === 'ledger') return 'Set ledger — Durable Set Log';
+  if (state.view === 'more') return 'More — Durable Set Log';
+  return 'Durable Set Log — offline workout ledger';
+}
+
+function focusCurrentHeading(): void {
+  const heading = document.querySelector<HTMLElement>('#main h1');
+  if (!heading) return;
+  heading.tabIndex = -1;
+  heading.focus({ preventScroll: true });
+}
+
 function render(): void {
+  document.title = documentTitle();
   const online = navigator.onLine;
   app.innerHTML = `
     <header class="site-header">
       <a class="brand" href="#workout" data-action="view" data-view="workout" aria-label="Durable Set Log, workout">
         <span class="brand-mark" aria-hidden="true">✓</span>
-        <h1>Durable Set Log</h1>
+        <span class="brand-title">Durable Set Log</span>
       </a>
       <div class="status-stamp ${online ? '' : 'is-offline'}" role="status">
         <span aria-hidden="true">${online ? '●' : '○'}</span> ${online ? 'On device' : 'Offline · still saving'}
       </div>
     </header>
+    ${isDemoMode ? `<aside class="demo-banner" aria-label="Demo mode"><strong>Demo — sample data, nothing is saved</strong><span>Try the sample strength workout safely.</span><div><button class="text-button" data-action="reset-demo">Reset demo</button><button class="button button-small" data-action="start-real">Start for real</button></div></aside>` : ''}
     <nav class="bottom-nav" aria-label="Primary navigation">
       ${navButton('workout', 'Workout', 'workout')}
       ${navButton('routines', 'Routines', 'routines')}
@@ -76,9 +95,11 @@ function render(): void {
       ${navButton('more', 'More', 'more')}
     </nav>
     <main id="main" tabindex="-1">
+      <p class="sr-only" aria-live="polite">${escapeHtml(documentTitle())}</p>
       ${state.flash ? `<div class="flash flash-${state.flash.tone}" role="status">${escapeHtml(state.flash.message)}<button data-action="dismiss-flash" aria-label="Dismiss message">×</button></div>` : ''}
       ${state.dbError ? errorView() : currentView()}
     </main>
+    <footer class="app-footer"><span>Durable Set Log keeps strength sets on this device.</span><span><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · Built by Param Factory · v1.0.1</span></footer>
     <dialog id="routine-dialog" class="ink-dialog" aria-labelledby="routine-dialog-title"></dialog>
     <dialog id="correction-dialog" class="ink-dialog" aria-labelledby="correction-dialog-title"></dialog>
     ${state.updateWorker ? `<aside class="update-toast" role="status"><div><strong>Fresh ink is ready.</strong><span>Update without losing your device ledger.</span></div><button class="button button-small" data-action="apply-update">Update</button></aside>` : ''}
@@ -86,7 +107,7 @@ function render(): void {
 }
 
 function errorView(): string {
-  return `<section class="error-sheet" aria-labelledby="storage-error"><p class="eyebrow">Storage check</p><h2 id="storage-error">This device ledger could not open</h2><p>${escapeHtml(state.dbError)}</p><p>Do not record a set until storage is available. Try leaving private browsing, freeing device storage, or closing other copies of the app.</p><button class="button" data-action="reload">Reload and retry</button></section>`;
+  return `<section class="error-sheet" aria-labelledby="storage-error"><p class="eyebrow">Storage check</p><h1 id="storage-error">This device ledger could not open</h1><p>${escapeHtml(state.dbError)}</p><p>Do not record a set until storage is available. Try leaving private browsing, freeing device storage, or closing other copies of the app.</p><button class="button" data-action="reload">Reload and retry</button></section>`;
 }
 
 function currentView(): string {
@@ -101,18 +122,18 @@ function workoutView(): string {
     return `<section class="workout-empty">
       <div class="hero-copy">
         <p class="eyebrow">Append-only · offline-first</p>
-        <h2>Your sets should outlast a reload.</h2>
-        <p>Tap complete and the set is written straight to this device. Signal optional. Corrections keep the original visible.</p>
-        ${state.routines.length ? `<div class="start-list" aria-label="Start a routine">${state.routines.map((routine) => `<button class="start-routine" data-action="start" data-id="${escapeHtml(routine.id)}"><span><strong>${escapeHtml(routine.name)}</strong><small>${routine.exercises.length} exercise${routine.exercises.length === 1 ? '' : 's'}</small></span><span aria-hidden="true">Start →</span></button>`).join('')}</div>` : `<button class="button button-primary" data-action="new-routine">Make your first routine</button>`}
+        <h1>Log every strength set, even offline.</h1>
+        <p>For strength trainees who need each completed set to survive a reload or lost signal.</p>
+        ${state.routines.length ? `<div class="start-list" aria-label="Start a routine">${state.routines.map((routine) => `<button class="start-routine" data-action="start" data-id="${escapeHtml(routine.id)}"><span><strong>${escapeHtml(routine.name)}</strong><small>${routine.exercises.length} exercise${routine.exercises.length === 1 ? '' : 's'}</small></span><span aria-hidden="true">Start →</span></button>`).join('')}</div>` : `<div class="hero-actions"><a class="button button-primary" href="/demo">Try it with sample data</a><button class="button" data-action="new-routine">Make your first routine</button></div><p class="action-note">The sample opens a separate ledger and is never saved with your data.</p>`}
       </div>
       <figure class="hero-art"><picture><source type="image/avif" srcset="/art/ledger-stamp-640.avif 640w, /art/ledger-stamp-960.avif 960w" sizes="(max-width: 760px) 100vw, 48vw"><img src="/art/ledger-stamp-640.webp" srcset="/art/ledger-stamp-640.webp 640w, /art/ledger-stamp-960.webp 960w" sizes="(max-width: 760px) 100vw, 48vw" width="960" height="640" alt="Risograph collage of a hand stamping a workout ledger beside a weight plate" decoding="async" fetchpriority="high"></picture><figcaption>Stamped in, not synced away.</figcaption></figure>
-      <div class="proof-strip"><span>${icon('check')} Written before confirmation</span><span>${icon('check')} Reload-safe IndexedDB</span><span>${icon('check')} CSV stays yours</span></div>
+      <div class="proof-strip"><span>${icon('check')} Confirms after device write</span><span>${icon('check')} Works offline after first visit</span><span>${icon('check')} Export CSV any time</span></div>
     </section>`;
   }
   const sessionSets = currentSets(state.events).filter((event) => event.sessionId === state.active?.sessionId);
   const totalTarget = state.active.exercises.reduce((sum, exercise) => sum + exercise.targetSets, 0);
   return `<section class="live-workout" aria-labelledby="live-heading">
-    <div class="workout-heading"><div><p class="eyebrow">In progress · since ${formatDate(state.active.startedAt)}</p><h2 id="live-heading">${escapeHtml(state.active.routineName)}</h2></div><div class="set-count"><strong>${sessionSets.length}</strong><span>of ${totalTarget} planned</span></div></div>
+    <div class="workout-heading"><div><p class="eyebrow">In progress · since ${formatDate(state.active.startedAt)}</p><h1 id="live-heading">${escapeHtml(state.active.routineName)}</h1></div><div class="set-count"><strong>${sessionSets.length}</strong><span>of ${totalTarget} planned</span></div></div>
     <div class="durability-note" role="note">${icon('check')} Every “Complete set” waits for a successful device write before it confirms.</div>
     <div class="exercise-stack">${state.active.exercises.map((exercise) => exerciseLogger(exercise, sessionSets)).join('')}</div>
     <button class="button button-finish" data-action="finish" ${state.busy ? 'disabled' : ''}>Finish workout</button>
@@ -141,7 +162,7 @@ function exerciseLogger(exercise: Exercise, sessionSets: SetEvent[]): string {
 function routinesView(): string {
   const canAdd = state.license.unlocked || state.routines.length < 2;
   return `<section class="page-section" aria-labelledby="routines-heading">
-    <div class="section-heading"><div><p class="eyebrow">Reusable cards</p><h2 id="routines-heading">Routines</h2><p>Defaults are a starting point. Adjust weight or reps during the workout.</p></div><button class="button button-primary" data-action="new-routine" ${canAdd ? '' : 'disabled aria-describedby="routine-limit"'}>New routine</button></div>
+    <div class="section-heading"><div><p class="eyebrow">Reusable cards</p><h1 id="routines-heading">Routines</h1><p>Defaults are a starting point. Adjust weight or reps during the workout.</p></div><button class="button button-primary" data-action="new-routine" ${canAdd ? '' : 'disabled aria-describedby="routine-limit"'}>New routine</button></div>
     ${!canAdd ? `<p id="routine-limit" class="limit-note">Free keeps two routines. The one-time unlock removes this limit; your ledger and exports always stay free.</p>` : ''}
     ${state.routines.length ? `<div class="routine-grid">${state.routines.map((routine) => `<article class="routine-card"><div><h3>${escapeHtml(routine.name)}</h3><ol>${routine.exercises.map((exercise) => `<li><span>${escapeHtml(exercise.name)}</span><small>${exercise.targetSets} sets · ${formatNumber(exercise.defaultWeight)} kg × ${exercise.defaultReps}</small></li>`).join('')}</ol></div><div class="card-actions"><button class="text-button" data-action="edit-routine" data-id="${escapeHtml(routine.id)}">Edit</button><button class="text-button danger" data-action="delete-routine" data-id="${escapeHtml(routine.id)}">Delete</button><button class="button button-small" data-action="start" data-id="${escapeHtml(routine.id)}">Start</button></div></article>`).join('')}</div>` : emptyPanel('No routines on this card yet', 'Add the exercises you repeat. Your first workout will be ready in about a minute.', 'Make a routine', 'new-routine')}
   </section>`;
@@ -151,7 +172,7 @@ function ledgerView(): string {
   const setEvents = state.events.filter(isSetEvent).slice().reverse();
   const corrected = correctedEventIds(state.events);
   return `<section class="page-section" aria-labelledby="ledger-heading">
-    <div class="section-heading"><div><p class="eyebrow">Immutable history</p><h2 id="ledger-heading">Set ledger</h2><p>${setEvents.length} recorded event${setEvents.length === 1 ? '' : 's'}. Corrections are new rows; earlier values remain inspectable.</p></div><button class="button button-small" data-action="export-csv" ${setEvents.length ? '' : 'disabled'}>Export CSV</button></div>
+    <div class="section-heading"><div><p class="eyebrow">Immutable history</p><h1 id="ledger-heading">Set ledger</h1><p>${setEvents.length} recorded event${setEvents.length === 1 ? '' : 's'}. Corrections are new rows; earlier values remain inspectable.</p></div><button class="button button-small" data-action="export-csv" ${setEvents.length ? '' : 'disabled'}>Export CSV</button></div>
     ${setEvents.length ? `<ol class="ledger-list">${setEvents.map((event) => `<li class="ledger-row ${corrected.has(event.id) ? 'is-corrected' : ''}"><div class="ledger-date"><time datetime="${escapeHtml(event.at)}">${formatDate(event.at)}</time><span>${event.type === 'set.corrected' ? 'Correction' : corrected.has(event.id) ? 'Corrected' : 'Original'}</span></div><div class="ledger-main"><strong>${escapeHtml(event.exerciseName)}</strong><span>Set ${event.setNumber} · ${formatNumber(event.weight)} kg × ${event.reps}</span><small>${escapeHtml(event.routineName)}</small></div><button class="text-button" data-action="correct" data-id="${escapeHtml(event.id)}">${corrected.has(event.id) ? 'Correct again' : 'Correct'}</button></li>`).join('')}</ol>` : emptyPanel('The ledger is blank', 'Complete a set during a workout. It will appear here only after the device write succeeds.', state.routines.length ? 'Start a workout' : 'Make a routine', state.routines.length ? 'go-workout' : 'new-routine')}
   </section>`;
 }
@@ -163,7 +184,7 @@ function moreView(): string {
   const licenseNotice = state.license.token && !state.license.unlocked && state.license.reason && state.license.reason !== 'offline'
     ? `<p class="license-warning">License no longer active (${escapeHtml(state.license.reason)}). <a href="${CHECKOUT_URL}">Get a new license</a>.</p>` : '';
   return `<section class="page-section" aria-labelledby="more-heading">
-    <div class="section-heading"><div><p class="eyebrow">Ownership &amp; recovery</p><h2 id="more-heading">More</h2><p>Back up, restore, install, and inspect what the app keeps.</p></div></div>
+    <div class="section-heading"><div><p class="eyebrow">Ownership &amp; recovery</p><h1 id="more-heading">More</h1><p>Back up, restore, install, and inspect what the app keeps.</p></div></div>
     <div class="more-grid">
       <section class="utility-sheet" aria-labelledby="data-title"><h3 id="data-title">Your data, portable</h3><p>CSV moves set history between tools. A JSON backup also includes reusable routines.</p><div class="button-row"><button class="button" data-action="export-csv">Export CSV</button><button class="button" data-action="export-json">Back up JSON</button></div><div class="import-row"><label class="file-button">Import CSV<input id="csv-import" type="file" accept=".csv,text/csv" data-import="csv"></label><label class="file-button">Restore JSON<input id="json-import" type="file" accept=".json,application/json" data-import="json"></label></div><p class="fine-print">Imports merge by conflict-free event ID. Existing records are never overwritten.</p></section>
       <section class="utility-sheet paid-sheet" aria-labelledby="paid-title"><div class="paid-head"><span class="ink-seal">ONE TIME</span><h3 id="paid-title">Keep the whole rack</h3></div>${licenseNotice}${state.license.unlocked ? `<p class="unlocked">${icon('check')} Unlimited routines and training summary unlocked on this device.</p><dl class="summary"><div><dt>Workouts logged</dt><dd>${sessions}</dd></div><div><dt>Current sets</dt><dd>${current.length}</dd></div><div><dt>Training volume</dt><dd>${formatNumber(volume)} kg</dd></div></dl>` : `<p>Durable logging, correction history, CSV export, and two routines are free. Pay <strong>US$14 once</strong> for unlimited routines and an on-device training summary.</p><a class="button button-primary" href="${CHECKOUT_URL}">Buy once · $14</a>`}<details><summary>Restore a purchase</summary><form id="license-form"><label for="license-token">License token</label><input id="license-token" name="license" autocomplete="off" spellcheck="false" required><button class="button button-small" type="submit">Verify license</button></form><p class="fine-print">Sociobot/Dodo is the merchant of record. Refunds are handled there and revoke the license.</p></details></section>
@@ -226,11 +247,24 @@ async function handleAction(button: HTMLElement): Promise<void> {
   const action = button.dataset.action;
   if (action === 'view' || action === 'go-workout') {
     state.view = action === 'go-workout' ? 'workout' : (button.dataset.view as View);
-    state.flash = undefined; render(); document.querySelector('#main')?.scrollIntoView(); return;
+    state.flash = undefined; render(); document.querySelector('#main')?.scrollIntoView(); focusCurrentHeading(); return;
   }
   if (action === 'dismiss-flash') { state.flash = undefined; render(); return; }
   if (action === 'close-dialog') { button.closest('dialog')?.close(); return; }
   if (action === 'reload') { location.reload(); return; }
+  if (action === 'reset-demo' && isDemoMode) {
+    await clearStoredData();
+    await seedDemoData();
+    await refreshData();
+    state.view = 'ledger';
+    setFlash('Sample data reset.', 'info');
+    return;
+  }
+  if (action === 'start-real' && isDemoMode) {
+    await clearStoredData();
+    location.assign('/');
+    return;
+  }
   if (action === 'new-routine') { showRoutineDialog(); return; }
   if (action === 'edit-routine') { showRoutineDialog(state.routines.find((routine) => routine.id === button.dataset.id)); return; }
   if (action === 'add-exercise') {
@@ -358,8 +392,13 @@ async function registerServiceWorker(): Promise<void> {
 }
 
 async function init(): Promise<void> {
+  useStorageNamespace(isDemoMode ? 'demo' : 'real');
+  useLicenseNamespace(isDemoMode ? 'demo' : 'real');
   captureReturnedLicense(); state.license = cachedLicenseState(); render();
-  try { await refreshData(); render(); }
+  try {
+    if (isDemoMode) await seedDemoData();
+    await refreshData(); render();
+  }
   catch (error) { state.dbError = error instanceof Error ? error.message : 'Storage is unavailable.'; render(); return; }
   void verifyLicense().then((license) => { state.license = license; render(); });
   void registerServiceWorker().catch(() => { /* Set logging remains available without installation support. */ });

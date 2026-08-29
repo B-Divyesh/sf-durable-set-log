@@ -10,6 +10,20 @@ const META = 'meta';
 interface MetaRecord { key: string; value: unknown }
 
 let databasePromise: Promise<IDBDatabase> | undefined;
+let databaseName = DB_NAME;
+
+/**
+ * Demo data must never share the visitor's real ledger. This is set before the
+ * first database operation during app startup and intentionally changes the
+ * entire IndexedDB database name, rather than tagging individual records.
+ */
+export function useStorageNamespace(namespace: 'real' | 'demo'): void {
+  const nextName = namespace === 'demo' ? `${DB_NAME}:demo` : DB_NAME;
+  if (databaseName === nextName) return;
+  databasePromise?.then((database) => database.close()).catch(() => undefined);
+  databasePromise = undefined;
+  databaseName = nextName;
+}
 
 function requestResult<T>(request: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -29,7 +43,7 @@ function transactionDone(transaction: IDBTransaction): Promise<void> {
 export function openDatabase(): Promise<IDBDatabase> {
   if (!('indexedDB' in globalThis)) return Promise.reject(new Error('This browser does not provide IndexedDB. Your sets cannot be saved safely here.'));
   databasePromise ??= new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    const request = indexedDB.open(databaseName, DB_VERSION);
     request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(ROUTINES)) db.createObjectStore(ROUTINES, { keyPath: 'id' });
@@ -115,6 +129,43 @@ export async function getActiveWorkout(): Promise<ActiveWorkout | undefined> {
   const db = await openDatabase();
   const item = await requestResult(db.transaction(META).objectStore(META).get('activeWorkout') as IDBRequest<MetaRecord | undefined>);
   return item?.value as ActiveWorkout | undefined;
+}
+
+export async function clearStoredData(): Promise<void> {
+  const db = await openDatabase();
+  const tx = db.transaction([ROUTINES, EVENTS, META], 'readwrite');
+  tx.objectStore(ROUTINES).clear();
+  tx.objectStore(EVENTS).clear();
+  tx.objectStore(META).clear();
+  await transactionDone(tx);
+}
+
+/** Seed a useful, believable workout history once inside the isolated demo DB. */
+export async function seedDemoData(): Promise<void> {
+  const db = await openDatabase();
+  const existing = await requestResult(db.transaction(ROUTINES).objectStore(ROUTINES).count());
+  if (existing > 0) return;
+  const routine: Routine = {
+    id: 'demo-routine-tuesday-strength', name: 'Tuesday strength',
+    createdAt: '2026-08-24T17:20:00.000Z', updatedAt: '2026-08-26T17:15:00.000Z',
+    exercises: [
+      { id: 'demo-back-squat', name: 'Back squat', targetSets: 3, defaultWeight: 82.5, defaultReps: 5 },
+      { id: 'demo-bench-press', name: 'Bench press', targetSets: 3, defaultWeight: 55, defaultReps: 8 },
+      { id: 'demo-row', name: 'Chest-supported row', targetSets: 3, defaultWeight: 42.5, defaultReps: 10 },
+    ],
+  };
+  const sessionId = 'demo-session-tuesday';
+  const events: LogEvent[] = [
+    { id: 'demo-start-tuesday', type: 'workout.started', at: '2026-08-26T17:30:00.000Z', sessionId, routineId: routine.id, routineName: routine.name, exercises: routine.exercises },
+    { id: 'demo-set-squat-1', type: 'set.completed', at: '2026-08-26T17:35:00.000Z', sessionId, setId: 'demo-squat-1', routineName: routine.name, exerciseId: 'demo-back-squat', exerciseName: 'Back squat', setNumber: 1, weight: 82.5, reps: 5 },
+    { id: 'demo-set-squat-2', type: 'set.completed', at: '2026-08-26T17:39:00.000Z', sessionId, setId: 'demo-squat-2', routineName: routine.name, exerciseId: 'demo-back-squat', exerciseName: 'Back squat', setNumber: 2, weight: 82.5, reps: 5 },
+    { id: 'demo-set-bench-1', type: 'set.completed', at: '2026-08-26T17:47:00.000Z', sessionId, setId: 'demo-bench-1', routineName: routine.name, exerciseId: 'demo-bench-press', exerciseName: 'Bench press', setNumber: 1, weight: 55, reps: 8 },
+    { id: 'demo-finish-tuesday', type: 'workout.finished', at: '2026-08-26T18:10:00.000Z', sessionId },
+  ];
+  const tx = db.transaction([ROUTINES, EVENTS], 'readwrite');
+  tx.objectStore(ROUTINES).add(routine);
+  for (const event of events) tx.objectStore(EVENTS).add(event);
+  await transactionDone(tx);
 }
 
 export interface Backup { format: 'durable-set-log-backup'; version: 1; exportedAt: string; routines: Routine[]; events: LogEvent[] }

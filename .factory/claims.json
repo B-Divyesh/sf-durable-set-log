@@ -1,0 +1,37 @@
+[
+  {
+    "id": "offline-reload",
+    "claim": "Works offline after the first visit",
+    "where": "Landing proof strip, README",
+    "test": "npm run test:claims -- --grep @claim:offline-reload",
+    "sandbox": "Fresh browser context; open /demo online until the service worker controls it, go offline, reload, and assert the sample ledger remains visible."
+  },
+  {
+    "id": "confirmed-device-write",
+    "claim": "A completed set is confirmed only after it is saved on this device",
+    "where": "Landing proof strip and active workout note",
+    "test": "npm run test:claims -- --grep @claim:confirmed-device-write",
+    "sandbox": "Fresh /demo context; complete a sample set, assert the confirmation, reload, and assert its saved value."
+  },
+  {
+    "id": "csv-export",
+    "claim": "Export CSV any time",
+    "where": "Landing proof strip, Ledger, README",
+    "test": "npm run test:claims -- --grep @claim:csv-export",
+    "sandbox": "Fresh /demo context; download CSV and assert its header plus a sample Back squat record."
+  },
+  {
+    "id": "local-privacy",
+    "claim": "Workout data stays in this browser unless you export it; the normal workout flow makes no third-party requests",
+    "where": "README, Privacy, More",
+    "test": "npm run test:claims -- --grep @claim:local-privacy",
+    "sandbox": "Fresh /demo context; record every request while opening and completing a sample set, then assert all are same-origin."
+  },
+  {
+    "id": "demo-isolated",
+    "claim": "Demo sample data is separate and never saved with real data",
+    "where": "Landing action, demo banner, demo documentation",
+    "test": "npm run test:claims -- --grep @claim:demo-isolated",
+    "sandbox": "Fresh context; create a routine at /?demo=1, navigate to /, and assert the real ledger does not show it."
+  }
+]

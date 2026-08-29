@@ -1,4 +1,4 @@
-const CACHE = 'durable-set-log-shell-v4';
+const CACHE = 'durable-set-log-shell-v5';
 const SHELL = ['/', '/index.html', '/offline.html', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/art/ledger-stamp-640.avif', '/art/ledger-stamp-960.avif', '/art/ledger-stamp-640.webp', '/art/ledger-stamp-960.webp'];
 
 self.addEventListener('install', (event) => {

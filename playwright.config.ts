@@ -15,5 +15,8 @@ export default defineConfig({
     port: 4173,
     reuseExistingServer: true,
   },
-  projects: [{ name: 'mobile-chromium', use: { ...devices['iPhone 13'], browserName: 'chromium' } }],
+  projects: [
+    { name: 'desktop-chromium', use: { browserName: 'chromium', viewport: { width: 1440, height: 900 } } },
+    { name: 'mobile-chromium', use: { ...devices['iPhone 13'], browserName: 'chromium' } },
+  ],
 });

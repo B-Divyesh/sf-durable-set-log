@@ -1,119 +1,69 @@
-# Durable Set Log — verification handoff
+# Durable Set Log — repair handoff
 
-Work order: `durable-set-log-verify-1`<br>
-Verified candidate: `31841007288333734887f82a6620e1bf6f177523`<br>
-Verified URL: <https://durable-set-log.sociobot.in/><br>
-Date: 2026-08-28<br>
-**Release result: FAIL — do not release.**
+Work order: `durable-set-log-repair-1`
+Base candidate repaired: `31841007288333734887f82a6620e1bf6f177523` (`3184100`)
+Date: 2026-08-29
+Artifact/deploy class: static `pwa-offline` (`dist/`)
 
-See [`.factory/verification.md`](verification.md) for exact commands, outputs,
-live evidence, and the full defect list. This verification supersedes the
-builder's self-reported pass metrics below; it does not change product code.
+## What was repaired
 
-## Release blockers
+- Added the required [claims manifest](claims.json) and five exact
+  `@claim:` Playwright regressions for offline reload, confirmed device write,
+  CSV export, local-only workout flow, and demo isolation.
+- Added a real `/demo` and `/?demo=1` sandbox. It seeds a realistic Tuesday
+  strength workout and uses IndexedDB database `durable-set-log:demo`, wholly
+  separate from the real `durable-set-log` database. Optional demo license
+  state is separately namespaced as well.
+- Added the visible first-screen **Try it with sample data** action, persistent
+  **Demo — sample data, nothing is saved** banner, **Reset demo**, and **Start
+  for real**. The latter clears the demo database before opening `/`.
+- Added [demo documentation](demo.md) and a first-screen [copy audit](copy-audit.md).
+- Rewrote the first h1 as `Log every strength set, even offline.` and explicitly
+  names strength trainees. App routes now set meaningful titles and move focus
+  to the new h1 after in-app navigation.
+- Added `staticwebapp.config.json` with CSP, Permissions-Policy, Referrer
+  Policy, and nosniff headers; manifest MIME type; navigation fallback; and a
+  designed `/404.html` response override with HTTP 404 status. The service
+  worker cache version was advanced to `v5`.
 
-- `.factory/claims.json` is missing, so the required every-claim test gate
-  could not run from a clean checkout.
-- The cold live screen has no `Try it with sample data` action. No sandboxed
-  sample/demo exists.
-- `?demo=1` is not isolated: a routine made there was visible in real mode.
-  `.factory/demo.md` is missing.
-- Published durability/privacy/CSV claims are therefore unlisted and untested.
+## Verification evidence
 
-## Independent verification summary
+All commands ran from `/work/repo` after a clean `npm ci` (67 packages,
+`npm audit`: 0 vulnerabilities):
 
-- `npm ci`, `npm test` (4/4), `npm run build`, and `npm run test:e2e` (4/4)
-  passed. The e2e suite's local durability case survived 100 offline reloads.
-- The deployed root and `sw.js` match this candidate byte-for-byte by SHA-256.
-  A fresh live workflow passed create, invalid-input rejection, set capture,
-  correction history, CSV/JSON export, and invalid CSV recovery with no page or
-  console errors. A confirmed live set survived 10 offline reloads.
-- Live axe scans at desktop and 390 px found zero serious/critical findings;
-  keyboard dialog/skip-link/reduced-motion checks passed.
-- A rate-limit burst reached 429 after approximately 29 successful invalid
-  license-verification requests and included `Retry-After`.
-- Additional remediation findings: no CSP/Permissions-Policy response header,
-  no real 404 (`/no-such-page` returns 200 shell), and the h1/first screen does
-  not explicitly name strength trainees.
-
----
-
-## Builder implementation notes (not independent acceptance)
-
-## What shipped
-
-- Installable vanilla TypeScript PWA with a hand-written, versioned service
-  worker. The small app and stylesheet are inlined into the cached document so
-  an offline reopen has no script/style subrequest failure surface. Responsive
-  artwork, icons, manifest, and offline fallback are also precached; an in-app
-  toast activates waiting updates.
-- Reusable routines with multiple exercises, default sets/load/reps, editing,
-  confirmed deletion, a two-routine free tier, and an unlimited paid tier.
-- A persisted active workout with large, thumb-friendly controls. Starting and
-  finishing a session atomically commit the event and active-session marker.
-- Append-only IndexedDB set events. The UI confirms only after `IDBObjectStore.add`
-  succeeds. Corrections add a later event and mark—not hide—the original.
-- CSV export/import for the set ledger, including quoted fields, validation,
-  duplicate detection, and safe renaming of foreign ID collisions. JSON backup
-  and validated merge restore include both routines and the full event stream.
-- One-time US$14 Sociobot unlock: hosted buy link, returned-license capture,
-  daily cached verification, optimistic offline access from a valid cache, and
-  pasted-token purchase restore. Core capture, corrections, exports, and safety
-  are never gated.
-- Original risograph hero, responsive AVIF/WebP derivatives, original app icons,
-  provenance sidecars, a product-specific design thesis, privacy/terms pages,
-  robots/sitemap, README, and MIT license.
-
-## Verification performed
-
-All commands ran from `/work/repo` against the final implementation:
-
-| Check | Result |
+| Check | Evidence |
 | --- | --- |
-| `npm test` | 4/4 unit tests passed |
-| `npm run build` | passed; `dist/index.html` present |
-| `npm run test:e2e` | 4/4 Chromium mobile tests passed |
-| Offline durability | the same confirmed 82.5 kg × 5 set reappeared after each of 100 consecutive offline reloads |
-| Accessibility | axe found 0 serious/critical violations; one `<h1>`, `lang`, main landmark, keyboard dialog flow, designed focus states |
-| Console | no console errors during create/start/save/reload/offline loop |
-| Dependency audit | `npm audit`: 0 vulnerabilities |
+| Unit/type | `npm test` passed: 6/6 Vitest tests, including static CSP/404 configuration regression tests. `npm run build` passed and produced `dist/index.html`. |
+| Claims | Each exact command from `claims.json` passed in desktop and 390 px Chromium: `offline-reload`, `confirmed-device-write`, `csv-export`, `local-privacy`, and `demo-isolated` (2 projects each). |
+| Browser | `npm run test:e2e` passed: 18/18 desktop + iPhone 13 Chromium tests. This includes the 100-offline-reload durability test, demo isolation, CSV download, corrections, keyboard dialog, and axe coverage. |
+| Accessibility | `npm run test:a11y` passed: 4/4 (desktop + 390 px). Axe found no serious/critical violations; h1, lang, main, first-screen copy/action, and keyboard dialog behavior are asserted. |
+| Performance | Production preview Lighthouse: Performance 94, Accessibility 100, Best Practices 100, SEO 100; FCP 0.8 s, LCP 1.6 s, CLS 0. Initial inlined document is 54.43 KB / 16.53 KB gzip, below the static JS budget. |
+| Privacy | The local-privacy claim records the full sample workout flow and asserts every request is same-origin. Normal demo use has no account, analytics, tracker, or cloud workout request. The optional purchase path remains the documented Sociobot billing endpoint only. |
+| Offline/update | The `offline-reload` claim opens `/demo`, waits for service-worker control, switches the browser offline, reloads, and confirms the sample ledger remains visible. The pre-existing 100-reload test also passed. Cache version is `durable-set-log-shell-v5`; the existing waiting-worker update toast remains intact. |
+| Hosting policy | `tests/hosting.test.ts` verifies CSP (including header-only `frame-ancestors`), Permissions-Policy, allowed billing `connect-src`, and the 404 override. `dist/staticwebapp.config.json` is present. |
 
-Final Lighthouse 12.8.2 mobile-class run on the production build:
+## Run, test, and deploy
 
-| Category/metric | Result |
-| --- | --- |
-| Performance | 100 |
-| Accessibility | 100 |
-| Best practices | 100 |
-| SEO | 100 |
-| First Contentful Paint | 0.8 s |
-| Largest Contentful Paint | 1.8 s |
-| Total Blocking Time | 0 ms |
-| Cumulative Layout Shift | 0 |
-| Time to Interactive | 1.8 s |
+```sh
+npm ci
+npm test
+npm run build
+npm run test:e2e
+npm run test:a11y
+npm run test:claims
+```
 
-Bundle/image budgets: the inlined app document is 49.45 KB (15.26 KB gzip),
-containing 34.27 KB JS and 14.86 KB CSS; hero sources are 34 KB 640px AVIF /
-62 KB WebP and 88 KB 960px AVIF / 152 KB WebP. There are no downloaded fonts
-or runtime CDNs.
+Deploy the contents of `dist/` through the static deployment configured for
+this repository. The deployment must preserve `staticwebapp.config.json` at
+the output root so response headers, MIME handling, navigation fallback, and
+the 404 override are applied.
 
-## Deploy and operate
+## Known limits
 
-1. Run `npm ci`.
-2. Run `npm run build`.
-3. Publish the contents of `dist/` at the site root. Preserve clean directory
-   URLs so `/privacy/` and `/terms/` resolve to their included `index.html`.
-4. The factory must register the `durable-set-log` billing product and its
-   return URL before purchase verification can succeed. No numeric product ID
-   or payment-provider credential belongs in this repository.
-
-## Known limits / next steps
-
-- Records are deliberately device-local. Clearing browser/site data or severe
-  storage eviction can remove them; users are told to make JSON backups.
-- Weight entry is kilograms in v1. A future release can add per-set kg/lb units
-  with an explicit migration rather than reinterpret existing values.
-- There is no cloud account, cross-device sync, social feed, program guidance,
-  or health-platform integration; these are intentional brief non-goals.
-- Browser storage eviction cannot be forced reliably in CI. The tested failure
-  boundary is offline operation plus 100 reloads after a confirmed write.
+- Real records remain device-local. Clearing browser/site data can remove them;
+  JSON backups remain the recovery path.
+- No cloud sync, account, social, medical advice, or program guidance is
+  provided by design.
+- The static-host header and 404 response status are configuration artifacts;
+  confirm them against the deployed URL after the hosting pipeline publishes
+  this repair.

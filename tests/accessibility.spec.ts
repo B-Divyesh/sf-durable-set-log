@@ -4,6 +4,9 @@ import { expect, test } from '@playwright/test';
 test('empty state has no serious accessibility violations', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('h1')).toHaveCount(1);
+  await expect(page.getByRole('heading', { name: 'Log every strength set, even offline.' })).toBeVisible();
+  await expect(page.getByText('For strength trainees who need each completed set to survive a reload or lost signal.')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
   await expect(page.locator('main')).toHaveCount(1);
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   const results = await new AxeBuilder({ page }).analyze();

@@ -7,6 +7,10 @@ CSV import/export, and full JSON backups. There is no account or cloud sync.
 
 Live product: <https://durable-set-log.sociobot.in>
 
+Try the isolated sample at <https://durable-set-log.sociobot.in/demo>. The
+sample is stored in a separate browser database and is never mixed with a real
+ledger.
+
 ## How durability works
 
 Workout data is written to IndexedDB. A set confirmation appears only after its
@@ -36,6 +40,7 @@ npm run dev
 npm test
 npm run build
 npm run test:e2e
+npm run test:claims
 ```
 
 The exact deploy build command is `npm run build`. Static output lands in
@@ -46,6 +51,9 @@ set `PLAYWRIGHT_BROWSERS_PATH` to the factory browser directory or run
 `npm test` covers CSV safety and correction folding. `npm run test:e2e` covers
 keyboard/dialog accessibility, an axe serious/critical scan, append-only
 corrections, and 100 consecutive offline reloads of a confirmed set.
+`npm run test:claims` runs each published reliability, privacy, CSV, and demo
+claim from the isolated `/demo` entry point. The mapping is in
+[`.factory/claims.json`](.factory/claims.json).
 
 ## Data and privacy
 
@@ -56,7 +64,8 @@ training; it is not medical guidance.
 
 The researched opportunity is in [`.factory/brief.json`](.factory/brief.json),
 the product-specific visual system and generated-asset provenance are in
-[`.factory/design.md`](.factory/design.md), and verification notes are in
+[`.factory/design.md`](.factory/design.md), the sample sandbox is documented
+in [`.factory/demo.md`](.factory/demo.md), and verification notes are in
 [`.factory/handoff.md`](.factory/handoff.md).
 
 ## License
